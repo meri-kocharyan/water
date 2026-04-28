@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">water</string>
+    <string name="fandoms">Fandoms</string>
+    <string name="search">Search</string>
+    <string name="home">Home</string>
+    <string name="chat">Chat</string>
+    <string name="library">Library</string>
+    <string name="inbox">Inbox</string>
+    <string name="user">User</string>
+
+
+
+    <string name="login_username_or_email_label">Username or email:</string>
+    <string name="login_username_or_email_hint">Enter username or email</string>
+    <string name="login_password_label">Password:</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_button_text">Log In</string>
+    <string name="login_forgot_password">Forgot password?</string>
+    <string name="login_register">Register</string>
+
+
+
+
+
+    <string name="menu_profile">Profile</string>
+    <string name="menu_library">Library</string>
+    <string name="menu_history">History</string>
+    <string name="menu_collections">Collections</string>
+    <string name="menu_updates">Updates</string>
+    <string name="menu_my_works">My Works</string>
+    <string name="menu_logout">Log Out</string>
+
+
+    <string name="supabase_url">https://tbspnnujtxombnenshmj.supabase.co</string>
+    <string name="supabase_anon_key">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRic3BubnVqdHhvbWJuZW5zaG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTAwMTEsImV4cCI6MjA5Mjg2NjAxMX0.zn94JQmcinDhxS3t683FTmiiQeVSNhKP0kY950Yy7RM</string>
+
+
+
+    <string-array name="language_options">
+        <item>Any language</item>
+        <item>English</item>
+        <item>Russian</item>
+        <item>Greek</item>
+        <item>German</item>
+        <item>Italian</item>
+    </string-array>
+</resources>
