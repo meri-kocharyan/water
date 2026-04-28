@@ -18,7 +18,7 @@ import com.example.water.supabase.SupabaseAuthHelper;
 
 public class RegisterFragment extends Fragment {
 
-    private EditText editEmail, editPassword, editConfirmPassword;
+    private EditText editEmail, editPassword, editConfirmPassword, editUsername;
     private Button btnRegister;
     private TextView txtLoginInstead;
 
@@ -33,6 +33,7 @@ public class RegisterFragment extends Fragment {
         View view = inflater.inflate(R.layout.register, container, false);
 
         editEmail = view.findViewById(R.id.editEmail);
+        editUsername = view.findViewById(R.id.editUsername);
         editPassword = view.findViewById(R.id.editPassword);
         editConfirmPassword = view.findViewById(R.id.editConfirmPassword);
         btnRegister = view.findViewById(R.id.btnRegister);
@@ -52,10 +53,11 @@ public class RegisterFragment extends Fragment {
 
     private void performRegister() {
         String email = editEmail.getText().toString().trim();
+        String username = editUsername.getText().toString().trim();
         String password = editPassword.getText().toString().trim();
         String confirm = editConfirmPassword.getText().toString().trim();
 
-        if (email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+        if (email.isEmpty() || username.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -64,29 +66,25 @@ public class RegisterFragment extends Fragment {
             return;
         }
 
+        // Proceed with sign up
         authHelper.signUp(email, password, new SupabaseAuthHelper.AuthCallback() {
             @Override
             public void onSuccess(String accessToken, String refreshToken, String email, String userId) {
                 sessionManager.saveAuthData(accessToken, refreshToken, email, userId);
-                // Create profile row
-                authHelper.createProfile(userId, email, accessToken, new SupabaseAuthHelper.AuthCallback() {
+                // Create profile with username (and default avatar)
+                authHelper.createProfileWithUsername(userId, email, username, accessToken, new SupabaseAuthHelper.AuthCallback() {
                     @Override
                     public void onSuccess(String a, String b, String c, String d) {
-                        // Profile created, now go to main
-                        requireActivity().runOnUiThread(() -> {
-                            Intent intent = new Intent(getActivity(), MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            if (getActivity() != null) getActivity().finish();
-                        });
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        if (getActivity() != null) getActivity().finish();
                     }
 
                     @Override
                     public void onError(String error) {
-                        requireActivity().runOnUiThread(() ->
-                                Toast.makeText(getContext(), "Warning: " + error, Toast.LENGTH_LONG).show()
-                        );
-                        // Still let them in even if profile creation fails
+                        Toast.makeText(getContext(), "Warning: " + error, Toast.LENGTH_LONG).show();
+                        // Still proceed
                         Intent intent = new Intent(getActivity(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);

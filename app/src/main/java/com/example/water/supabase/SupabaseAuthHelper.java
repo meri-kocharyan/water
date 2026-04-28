@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.water.Book;
+import com.example.water.Chapter;
 import com.example.water.FriendRequest;
 import com.example.water.Message;
 import com.example.water.UserProfile;
@@ -624,97 +626,415 @@ public class SupabaseAuthHelper {
 
 
 
-    // Full profile callback
-    public interface FullProfileCallback {
-        void onSuccess(String email, String username, String avatarUrl, String createdAt);
+    // Callback interface
+    public interface UserProfileCallback {
+        void onSuccess(UserProfile profile);
         void onError(String error);
     }
 
-    public void fetchFullProfile(String userId, FullProfileCallback callback) {
-        String url = SUPABASE_URL + "/rest/v1/profiles?id=eq." + userId + "&select=email,username,avatar_url,created_at";
+    // Fetch a single profile by user ID (or by user_id)
+    public void fetchUserProfile(String accessToken, String userId, UserProfileCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/profiles?user_id=eq." + userId + "&select=*";
 
         Request request = new Request.Builder()
                 .url(url)
                 .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
                 .get()
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                mainHandler(() -> callback.onError(e.getMessage()));
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     String json = response.body().string();
-                    try {
-                        JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
-                        if (arr.size() > 0) {
-                            JsonObject obj = arr.get(0).getAsJsonObject();
-                            String email = getJsonString(obj, "email");
-                            String username = getJsonString(obj, "username");
-                            String avatarUrl = getJsonString(obj, "avatar_url");
-                            String createdAt = getJsonString(obj, "created_at");
-                            mainHandler(() -> callback.onSuccess(email, username, avatarUrl, createdAt));
-                        } else {
-                            mainHandler(() -> callback.onError("Profile not found"));
-                        }
-                    } catch (Exception e) {
-                        mainHandler(() -> callback.onError(e.getMessage()));
+                    UserProfile[] arr = new Gson().fromJson(json, UserProfile[].class);
+                    if (arr.length > 0) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(arr[0]));
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("Profile not found"));
                     }
                 } else {
-                    mainHandler(() -> callback.onError("Failed to load profile"));
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch profile"));
                 }
             }
         });
     }
 
-    // Username uniqueness check
-    public interface UsernameCheckCallback {
-        void onResult(boolean isUnique);
-    }
 
-    public void checkUsernameUnique(String username, String excludeUserId, UsernameCheckCallback callback) {
-        // Count profiles with that username, excluding own id
-        String url = SUPABASE_URL + "/rest/v1/profiles?select=id&username=eq." + username +
-                "&id=neq." + excludeUserId + "&limit=1";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public void createProfileWithUsername(String userId, String email, String username,
+                                          String accessToken, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("id", userId);
+        body.addProperty("user_id", userId);
+        body.addProperty("email", email);
+        body.addProperty("username", username);
+        body.addProperty("avatar_url", "default"); // placeholder, we'll replace later
 
         Request request = new Request.Builder()
-                .url(url)
+                .url(SUPABASE_URL + "/rest/v1/profiles")
                 .header("apikey", ANON_KEY)
-                .get()
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .post(RequestBody.create(body.toString(), JSON))
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                mainHandler(() -> callback.onResult(false));
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() || response.code() == 201) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    String err = response.body() != null ? response.body().string() : "";
+                    notifyError(callback, "Profile creation failed: " + err);
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public interface BookCallback {
+        void onSuccess(Book book);
+        void onError(String error);
+    }
+
+    public interface BooksCallback {
+        void onSuccess(List<Book> books);
+        void onError(String error);
+    }
+
+    // Publish a new book
+    public void publishBook(String accessToken, String authorId, String title,
+                            String description, List<String> tags, String content,
+                            BookCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("author_id", authorId);
+        body.addProperty("title", title);
+        body.addProperty("description", description);
+        body.add("tags", new Gson().toJsonTree(tags));
+        body.addProperty("content", content);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/books")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     String json = response.body().string();
-                    boolean exists = json.length() > 2; // empty array => []
-                    mainHandler(() -> callback.onResult(!exists));
+                    Book[] books = new Gson().fromJson(json, Book[].class);
+                    if (books.length > 0) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(books[0]));
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("Book created but no response"));
+                    }
                 } else {
-                    mainHandler(() -> callback.onResult(false));
+                    String err = response.body() != null ? response.body().string() : "";
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Publish failed: " + err));
                 }
             }
         });
     }
 
-    // Update profile
-    public void updateProfile(String accessToken, String userId, String username, String avatarUrl,
-                              AuthCallback callback) {
-        JsonObject body = new JsonObject();
-        body.addProperty("username", username);
-        body.addProperty("avatar_url", avatarUrl);
+    // Fetch all books (for home page, later with search/tags)
+    public void fetchBooks(String accessToken, String searchQuery, BooksCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/books?select=*";
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            url += "&or=(title.ilike.*" + searchQuery + "*,description.ilike.*" + searchQuery + "*)";
+        }
+        url += "&order=created_at.desc&limit=50";
 
         Request request = new Request.Builder()
-                .url(SUPABASE_URL + "/rest/v1/profiles?id=eq." + userId)
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Book[] arr = new Gson().fromJson(json, Book[].class);
+                    List<Book> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to load books"));
+                }
+            }
+        });
+    }
+
+    // Fetch a single book by ID
+    public void fetchBookById(String accessToken, String bookId, BookCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/books?id=eq." + bookId + "&select=*";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Book[] arr = new Gson().fromJson(json, Book[].class);
+                    if (arr.length > 0) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(arr[0]));
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("Book not found"));
+                    }
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch book"));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+    // Fetch books by author
+    public void fetchMyBooks(String accessToken, String authorId, BooksCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/books?author_id=eq." + authorId +
+                "&select=*&order=created_at.desc";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Book[] arr = new Gson().fromJson(json, Book[].class);
+                    List<Book> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to load your books"));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+    public interface ChapterCallback {
+        void onSuccess(Chapter chapter);
+        void onError(String error);
+    }
+
+    public interface ChaptersCallback {
+        void onSuccess(List<Chapter> chapters);
+        void onError(String error);
+    }
+
+
+
+    public void createChapter(String accessToken, String bookId, int chapterNumber,
+                              String title, String content, String summary,
+                              String notesAbove, String notesBelow, ChapterCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("book_id", bookId);
+        body.addProperty("chapter_number", chapterNumber);
+        body.addProperty("title", title.isEmpty() ? "Chapter " + chapterNumber : title);
+        body.addProperty("content", content);
+        body.addProperty("summary", summary);
+        body.addProperty("notes_above", notesAbove);
+        body.addProperty("notes_below", notesBelow);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/chapters")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Chapter[] arr = new Gson().fromJson(json, Chapter[].class);
+                    if (arr.length > 0) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(arr[0]));
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("Chapter created but no response"));
+                    }
+                } else {
+                    String err = response.body() != null ? response.body().string() : "";
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Chapter creation failed: " + err));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    // Fetch chapters for a given book, ordered by chapter_number
+    public void fetchChaptersByBookId(String accessToken, String bookId,
+                                      ChaptersCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/chapters?book_id=eq." + bookId +
+                "&select=*&order=chapter_number.asc";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Chapter[] arr = new Gson().fromJson(json, Chapter[].class);
+                    List<Chapter> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to load chapters"));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+    public void updateBook(String accessToken, String bookId, String title,
+                           String description, List<String> tags, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("title", title);
+        body.addProperty("description", description);
+        body.add("tags", new Gson().toJsonTree(tags));
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/books?id=eq." + bookId)
                 .header("apikey", ANON_KEY)
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/json")
@@ -725,28 +1045,104 @@ public class SupabaseAuthHelper {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                mainHandler(() -> callback.onError(e.getMessage()));
+                notifyError(callback, e.getMessage());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    mainHandler(() -> callback.onSuccess(null, null, null, null));
+                    notifySuccess(callback, null, null, null, null);
                 } else {
-                    mainHandler(() -> callback.onError("Failed to update profile"));
+                    notifyError(callback, "Update failed");
                 }
             }
         });
     }
 
-    private void mainHandler(Runnable r) {
-        new Handler(Looper.getMainLooper()).post(r);
+
+
+
+
+
+
+
+
+    public void updateChapter(String accessToken, String chapterId, String title,
+                              String content, String summary, String notesAbove,
+                              String notesBelow, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        if (title != null) body.addProperty("title", title);
+        if (content != null) body.addProperty("content", content);
+        if (summary != null) body.addProperty("summary", summary);
+        if (notesAbove != null) body.addProperty("notes_above", notesAbove);
+        if (notesBelow != null) body.addProperty("notes_below", notesBelow);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/chapters?id=eq." + chapterId)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .patch(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Chapter update failed");
+                }
+            }
+        });
     }
 
-    private String getJsonString(JsonObject obj, String key) {
-        if (obj.has(key) && !obj.get(key).isJsonNull()) {
-            return obj.get(key).getAsString();
-        }
-        return null;
+
+
+
+
+
+
+
+
+
+    // Fetch single chapter by ID
+    public void fetchChapterById(String accessToken, String chapterId, ChapterCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/chapters?id=eq." + chapterId + "&select=*";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Chapter[] arr = new Gson().fromJson(json, Chapter[].class);
+                    if (arr.length > 0) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(arr[0]));
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("Chapter not found"));
+                    }
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch chapter"));
+                }
+            }
+        });
     }
 }

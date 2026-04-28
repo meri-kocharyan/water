@@ -45,4 +45,27 @@
         <item>German</item>
         <item>Italian</item>
     </string-array>
+
+
+
+
+
+    <string-array name="rating_options">
+        <item>Not Rated</item>
+        <item>General Audiences</item>
+        <item>Teen and Up</item>
+        <item>Mature</item>
+        <item>Explicit</item>
+    </string-array>
+
+    <string-array name="fandom_suggestions">
+        <item>Harry Potter</item>
+        <item>Marvel</item>
+        <item>DC</item>
+        <item>Star Wars</item>
+        <item>Game of Thrones</item>
+        <item>Lord of the Rings</item>
+        <item>Anime</item>
+        <item>K-pop</item>
+    </string-array>
 </resources>

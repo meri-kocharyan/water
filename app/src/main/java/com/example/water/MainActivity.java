@@ -116,12 +116,20 @@ public class MainActivity extends AppCompatActivity {
             popupWindow.dismiss();
         };
 
-        menuProfile.setOnClickListener(menuItemClick);
+        menuProfile.setOnClickListener(v -> {
+            loadFragment(new ProfileFragment());
+            popupWindow.dismiss();
+        });
+
         menuLibrary.setOnClickListener(menuItemClick);
         menuHistory.setOnClickListener(menuItemClick);
         menuCollections.setOnClickListener(menuItemClick);
         menuUpdates.setOnClickListener(menuItemClick);
-        menuMyWorks.setOnClickListener(menuItemClick);
+
+        menuMyWorks.setOnClickListener(v -> {
+            loadFragment(new MyWorksFragment(), "my_works");
+            popupWindow.dismiss();
+        });
 
         // Logout handler
         menuLogout.setOnClickListener(v -> {
@@ -135,5 +143,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Show the popup anchored to the anchor view (user button)
         popupWindow.showAsDropDown(anchorView, 0, 0, Gravity.END); // aligned to end
+    }
+
+    public void loadFragment(Fragment fragment, String tag) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment, tag)
+                .addToBackStack(tag)
+                .commit();
     }
 }

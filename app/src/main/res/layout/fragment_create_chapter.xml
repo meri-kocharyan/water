@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?android:attr/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chapter 1"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Chapter Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chapter Title"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etChapterTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Leave blank for 'Chapter 1'"
+            android:inputType="text"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Summary checkbox + field -->
+        <CheckBox
+            android:id="@+id/cbAddSummary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add chapter summary"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etChapterSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Chapter summary"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Notes above checkbox + field -->
+        <CheckBox
+            android:id="@+id/cbNotesAbove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add notes above chapter"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etNotesAbove"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Notes at the beginning"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Notes below checkbox + field -->
+        <CheckBox
+            android:id="@+id/cbNotesBelow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add notes below chapter"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etNotesBelow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Notes at the end"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Chapter Content -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Content"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etChapterContent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:inputType="textMultiLine"
+            android:gravity="top"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
+            android:minHeight="300dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Publish button -->
+        <Button
+            android:id="@+id/btnPublish"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Publish"
+            android:backgroundTint="@color/blue"
+            android:textColor="@android:color/white"
+            android:padding="12dp" />
+    </LinearLayout>
+</ScrollView>
