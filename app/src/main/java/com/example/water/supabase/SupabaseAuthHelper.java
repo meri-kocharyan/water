@@ -798,9 +798,8 @@ public class SupabaseAuthHelper {
         });
     }
 
-    // Fetch all books (for home page, later with search/tags)
     public void fetchBooks(String accessToken, String searchQuery, BooksCallback callback) {
-        String url = SUPABASE_URL + "/rest/v1/books?select=*";
+        String url = SUPABASE_URL + "/rest/v1/books_with_stats?select=*";
         if (searchQuery != null && !searchQuery.isEmpty()) {
             url += "&or=(title.ilike.*" + searchQuery + "*,description.ilike.*" + searchQuery + "*)";
         }
@@ -879,7 +878,7 @@ public class SupabaseAuthHelper {
 
     // Fetch books by author
     public void fetchMyBooks(String accessToken, String authorId, BooksCallback callback) {
-        String url = SUPABASE_URL + "/rest/v1/books?author_id=eq." + authorId +
+        String url = SUPABASE_URL + "/rest/v1/books_with_stats?author_id=eq." + authorId +
                 "&select=*&order=created_at.desc";
 
         Request request = new Request.Builder()
@@ -1141,6 +1140,45 @@ public class SupabaseAuthHelper {
                     }
                 } else {
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch chapter"));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+    public void searchBooks(String accessToken, String query, BooksCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/books_with_stats?select=*";
+        if (query != null && !query.isEmpty()) {
+            url += "&or=(title.ilike.*" + query + "*,author_username.ilike.*" + query + "*)";
+        }
+        url += "&order=created_at.desc&limit=50";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Book[] arr = new Gson().fromJson(json, Book[].class);
+                    List<Book> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Search failed"));
                 }
             }
         });

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:padding="16dp"
+    android:background="?android:attr/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvDetailTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Author -->
+        <TextView
+            android:id="@+id/tvDetailAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Summary -->
+        <TextView
+            android:id="@+id/tvDetailSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:lineSpacingMultiplier="1.2"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Tags / meta (fandom, warning, language, rating, words, chapters) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView android:id="@+id/tvDetailFandom"
+                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
+                android:layout_height="20dp"
+                android:layout_width="300dp"/>
+            <TextView android:id="@+id/tvDetailWarning"
+                android:textSize="14sp" android:textColor="?attr/colorError"
+                android:layout_height="20dp"
+                android:layout_width="300dp"/>
+            <TextView android:id="@+id/tvDetailLanguage"
+                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
+                android:layout_height="20dp"
+                android:layout_width="300dp"/>
+            <TextView android:id="@+id/tvDetailRating"
+                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
+                android:layout_height="20dp"
+                android:layout_width="300dp"/>
+            <TextView android:id="@+id/tvDetailStats"
+                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
+                android:layout_height="20dp"
+                android:layout_width="300dp"/>
+        </LinearLayout>
+
+        <!-- Start Reading button -->
+        <Button
+            android:id="@+id/btnStartReading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Reading"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/blue"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Chapters list -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chapters"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvChapters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+    </LinearLayout>
+</ScrollView>

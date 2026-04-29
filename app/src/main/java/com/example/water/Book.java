@@ -30,4 +30,23 @@ public class Book {
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
     public void setTags(List<String> tags) { this.tags = tags; }
+
+
+
+
+
+
+    private int chapter_count;
+    private int word_count;
+
+    public int getChapter_count() { return chapter_count; }
+    public int getWord_count() { return word_count; }
+
+
+
+
+
+    private String author_username;
+
+    public String getAuthor_username() { return author_username; }
 }

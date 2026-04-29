@@ -40,6 +40,10 @@ public class MyWorksFragment extends Fragment {
 
         rvBooks.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        rvBooks.addItemDecoration(
+                new androidx.recyclerview.widget.DividerItemDecoration(
+                        requireContext(), LinearLayoutManager.VERTICAL));
+
         adapter = new BookAdapter(new ArrayList<>(), book -> {
             BookManagementFragment managementFrag = BookManagementFragment.newInstance(book.getId());
             requireActivity().getSupportFragmentManager()

@@ -23,11 +23,12 @@ public class ChapterViewFragment extends Fragment {
 
     private TextView tvTitle, tvNotesAbove, tvContent, tvNotesBelow;
     private EditText etTitle, etNotesAbove, etContent, etNotesBelow;
-    private Button btnEdit, btnSave;
+    private Button btnEdit, btnSave, btnPrev, btnNext;
 
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
     private Chapter currentChapter;
+    private boolean isAuthor = false;
 
     public static ChapterViewFragment newInstance(String chapterId) {
         ChapterViewFragment frag = new ChapterViewFragment();
@@ -63,26 +64,54 @@ public class ChapterViewFragment extends Fragment {
 
         btnEdit = view.findViewById(R.id.btnEdit);
         btnSave = view.findViewById(R.id.btnSave);
+        btnPrev = view.findViewById(R.id.btnPrev);
+        btnNext = view.findViewById(R.id.btnNext);
 
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
 
+        // Initially hide edit controls – will be shown later if author
+        btnEdit.setVisibility(View.INVISIBLE);
+        btnSave.setVisibility(View.INVISIBLE);
+
         btnEdit.setOnClickListener(v -> enableEditing(true));
         btnSave.setOnClickListener(v -> saveChanges());
+        btnPrev.setOnClickListener(v -> navigateChapter(false));
+        btnNext.setOnClickListener(v -> navigateChapter(true));
 
-        fetchChapter();
+        fetchChapterAndCheckOwnership();
 
         return view;
     }
 
-    private void fetchChapter() {
+    private void fetchChapterAndCheckOwnership() {
         String token = sessionManager.getAccessToken();
-        // We need a method to fetch a single chapter by ID. We'll add it to helper.
         authHelper.fetchChapterById(token, chapterId, new SupabaseAuthHelper.ChapterCallback() {
             @Override
             public void onSuccess(Chapter chapter) {
                 currentChapter = chapter;
                 populateDisplay(chapter);
+                // Now check if current user is author of the book
+                authHelper.fetchBookById(token, chapter.getBook_id(), new SupabaseAuthHelper.BookCallback() {
+                    @Override
+                    public void onSuccess(Book book) {
+                        String myUserId = sessionManager.getUserId();
+                        isAuthor = (myUserId != null && myUserId.equals(book.getAuthor_id()));
+                        // Show edit buttons if author
+                        if (isAuthor) {
+                            btnEdit.setVisibility(View.VISIBLE);
+                        } else {
+                            btnEdit.setVisibility(View.GONE);
+                        }
+                        // Update navigation buttons visibility later if needed
+                        updateNavigationButtons(book.getChapter_count());
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(getContext(), "Failed to verify ownership", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override
@@ -100,8 +129,8 @@ public class ChapterViewFragment extends Fragment {
     }
 
     private void enableEditing(boolean enable) {
+        if (!isAuthor) return; // double‑check
         if (enable) {
-            // Show edit fields, hide display fields
             tvTitle.setVisibility(View.GONE);
             tvNotesAbove.setVisibility(View.GONE);
             tvContent.setVisibility(View.GONE);
@@ -130,12 +159,14 @@ public class ChapterViewFragment extends Fragment {
             etContent.setVisibility(View.GONE);
             etNotesBelow.setVisibility(View.GONE);
 
-            btnEdit.setVisibility(View.VISIBLE);
+            btnEdit.setVisibility(isAuthor ? View.VISIBLE : View.GONE);
             btnSave.setVisibility(View.GONE);
         }
     }
 
     private void saveChanges() {
+        // same as before, but after save, refresh chapter and switch back
+        // ... (previous saveChanges code) ...
         String newTitle = etTitle.getText().toString().trim();
         String newContent = etContent.getText().toString().trim();
         String newNotesAbove = etNotesAbove.getText().toString().trim();
@@ -151,8 +182,7 @@ public class ChapterViewFragment extends Fragment {
                 newNotesAbove, newNotesBelow, new SupabaseAuthHelper.AuthCallback() {
                     @Override
                     public void onSuccess(String a, String b, String c, String d) {
-                        // Update local chapter
-                        currentChapter = new Chapter(); // update fields
+                        // Update local chapter object (you may need setters or create new)
                         currentChapter.setTitle(newTitle);
                         currentChapter.setContent(newContent);
                         currentChapter.setNotes_above(newNotesAbove);
@@ -167,5 +197,49 @@ public class ChapterViewFragment extends Fragment {
                         Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void navigateChapter(boolean next) {
+        if (currentChapter == null) return;
+        final int currentNumber = currentChapter.getChapter_number();
+        final String bookId = currentChapter.getBook_id();
+        final int direction = next ? 1 : -1;
+
+        String token = sessionManager.getAccessToken();
+        authHelper.fetchChaptersByBookId(token, bookId, new SupabaseAuthHelper.ChaptersCallback() {
+            @Override
+            public void onSuccess(java.util.List<Chapter> chapters) {
+                Chapter target = null;
+                for (Chapter ch : chapters) {
+                    if (ch.getChapter_number() == currentNumber + direction) {
+                        target = ch;
+                        break;
+                    }
+                }
+                if (target != null) {
+                    // Replace current fragment with the new chapter
+                    ChapterViewFragment newFrag = ChapterViewFragment.newInstance(target.getId());
+                    requireActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, newFrag)
+                            .addToBackStack(null)
+                            .commit();
+                } else {
+                    Toast.makeText(getContext(), next ? "No next chapter" : "No previous chapter", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateNavigationButtons(int totalChapters) {
+        if (currentChapter == null) return;
+        int num = currentChapter.getChapter_number();
+        btnPrev.setVisibility(num > 1 ? View.VISIBLE : View.INVISIBLE);
+        btnNext.setVisibility(num < totalChapters ? View.VISIBLE : View.INVISIBLE);
     }
 }

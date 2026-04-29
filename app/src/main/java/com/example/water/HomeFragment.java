@@ -16,71 +16,68 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.water.supabase.SupabaseAuthHelper;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class HomeFragment extends Fragment {
 
     private TextView tvWelcome;
     private RecyclerView rvNewest;
     private BookAdapter adapter;
-    private SupabaseAuthHelper authHelper;
-    private SessionManager sessionManager;
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-        // Remove all code except this minimal safe block
-        return view;
-    }
-
-    /*
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        //tvWelcome = view.findViewById(R.id.tvWelcome);
-        //rvNewest = view.findViewById(R.id.rvNewest);
-
-        authHelper = new SupabaseAuthHelper();
-        sessionManager = new SessionManager(requireContext());
+        tvWelcome = view.findViewById(R.id.tvWelcome);
+        rvNewest = view.findViewById(R.id.rvNewest);
 
         // Set welcome message
-        String username = sessionManager.getUserEmail(); // or you could fetch actual username from profile
-        if (username != null && !username.isEmpty()) {
-            tvWelcome.setText("Welcome back, " + username + "!");
-        } else {
-            tvWelcome.setText("Welcome!");
+        SessionManager sm = new SessionManager(requireContext());
+        String email = sm.getUserEmail();
+        if (tvWelcome != null) {
+            if (email != null && !email.isEmpty()) {
+                tvWelcome.setText("Welcome back, " + email + "!");
+            } else {
+                tvWelcome.setText("Welcome, guest!");
+            }
         }
 
-        // Setup RecyclerView
-        rvNewest.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new BookAdapter(new ArrayList<>(), book -> {
-            // Later: open reading view. For now, just toast.
-            Toast.makeText(getContext(), "Open: " + book.getTitle(), Toast.LENGTH_SHORT).show();
-        });
-        rvNewest.setAdapter(adapter);
+        // Setup RecyclerView if available
+        if (rvNewest != null) {
+            rvNewest.setLayoutManager(new LinearLayoutManager(getContext()));
+            adapter = new BookAdapter(new ArrayList<>(), book -> {
+                BookDetailFragment detailFrag = BookDetailFragment.newInstance(book.getId());
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, detailFrag)
+                        .addToBackStack("book_detail")
+                        .commit();
+            });
+            rvNewest.setAdapter(adapter);
 
-        loadNewestBooks();
+            // Load books from Supabase
+            SupabaseAuthHelper helper = new SupabaseAuthHelper();
+            helper.fetchBooks(sm.getAccessToken(), "", new SupabaseAuthHelper.BooksCallback() {
+                @Override
+                public void onSuccess(java.util.List<Book> books) {
+                    if (adapter != null) {
+                        adapter.updateList(books);
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), "Could not load books", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        rvNewest.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Add this line for the divider
+        rvNewest.addItemDecoration(new androidx.recyclerview.widget.DividerItemDecoration(
+                requireContext(), LinearLayoutManager.VERTICAL));
 
         return view;
-    }
-    */
-
-    private void loadNewestBooks() {
-        // Use empty query to get newest, use anon key for public read
-        String token = sessionManager.getAccessToken();
-        authHelper.fetchBooks(token, "", new SupabaseAuthHelper.BooksCallback() {
-            @Override
-            public void onSuccess(List<Book> books) {
-                adapter.updateList(books);
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(getContext(), "Failed to load books: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }
