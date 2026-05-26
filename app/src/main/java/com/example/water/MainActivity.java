@@ -1,5 +1,7 @@
 package com.example.water;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -14,10 +16,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.example.water.supabase.SupabaseAuthHelper;
+
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private FrameLayout navContainer;
     private SessionManager sessionManager;
+
+    private View badgeView;
+    private SupabaseAuthHelper authHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
         navContainer = findViewById(R.id.nav_container);
         sessionManager = new SessionManager(this);
+        authHelper = new SupabaseAuthHelper();
 
         setupNavigation();
 
@@ -60,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
         // User icon shows popup menu instead of fragment
         navView.findViewById(R.id.btnUser).setOnClickListener(v -> showUserMenu(v));
+
+        badgeView = navView.findViewById(R.id.inboxBadge);
     }
 
     private void setupLoggedOutListeners(View navView) {
@@ -83,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
     // Call this if you need to refresh the nav bar without restarting the activity
     public void refreshNavigation() {
         setupNavigation();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateInboxBadge();
     }
 
 
@@ -151,5 +169,31 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.fragment_container, fragment, tag)
                 .addToBackStack(tag)
                 .commit();
+    }
+
+
+
+    private void updateInboxBadge() {
+        if (!sessionManager.isLoggedIn()) return;
+
+        String token = sessionManager.getAccessToken();
+        String userId = sessionManager.getUserId();
+        if (token == null || userId == null) return;
+
+        authHelper.fetchNotifications(token, userId, new SupabaseAuthHelper.NotificationsCallback() {
+            @Override
+            public void onSuccess(List<Notification> notifications) {
+                int unread = 0;
+                for (Notification n : notifications) {
+                    if (!n.isIs_read()) unread++;
+                }
+                if (badgeView != null) {
+                    badgeView.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
+                }
+            }
+
+            @Override
+            public void onError(String error) {}
+        });
     }
 }

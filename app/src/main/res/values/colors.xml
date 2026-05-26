@@ -4,4 +4,12 @@
     <color name="white">#FFFFFFFF</color>
     <color name="blue">#8CA9C4</color>
     <color name="checkbox_blue">#6275b3</color>
+
+    <color name="ao3_fandom">#666666</color>        <!-- grey italic -->
+    <color name="ao3_title">#1A5276</color>         <!-- dark sky blue -->
+    <color name="ao3_warning">#CC0000</color>       <!-- bold red for warnings -->
+
+    <color name="ao3_header_bg">#FFF9F4</color>  <!-- warm off-white -->
+    <color name="ao3_stats_bg">#F0EBE6</color>   <!-- slightly darker strip -->
+    <color name="ao3_rule">#DDCCBB</color>        <!-- warm grey divider -->
 </resources>

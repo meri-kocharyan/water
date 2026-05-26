@@ -49,4 +49,9 @@ public class Book {
     private String author_username;
 
     public String getAuthor_username() { return author_username; }
+
+
+
+    public String getDatePosted() { return created_at; }
+    public String getLastUpdated() { return updated_at; }
 }

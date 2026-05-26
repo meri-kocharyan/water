@@ -90,6 +90,53 @@
             android:textSize="14sp"
             android:visibility="gone" />
 
+        <!-- Comments section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Comments"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvComments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Post comment area (only if logged in) -->
+        <LinearLayout
+            android:id="@+id/postCommentArea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etCommentInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Write a comment..."
+                android:inputType="textMultiLine"
+                android:maxLines="2"
+                android:padding="8dp"
+                android:background="@drawable/edit_text_border" />
+
+            <ImageButton
+                android:id="@+id/btnSendComment"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_send"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Send comment" />
+        </LinearLayout>
+
         <!-- Navigation & Edit/Save buttons -->
         <LinearLayout
             android:layout_width="match_parent"

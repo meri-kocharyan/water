@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:padding="16dp"
     android:background="?android:attr/colorBackground">
 
     <LinearLayout
@@ -11,88 +10,244 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Title -->
-        <TextView
-            android:id="@+id/tvDetailTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
-            android:layout_marginBottom="8dp" />
-
-        <!-- Author -->
-        <TextView
-            android:id="@+id/tvDetailAuthor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Summary -->
-        <TextView
-            android:id="@+id/tvDetailSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="?android:attr/textColorPrimary"
-            android:lineSpacingMultiplier="1.2"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Tags / meta (fandom, warning, language, rating, words, chapters) -->
+        <!-- ══════════════════════════════════════════
+             HEADER BLOCK  (cream tint, like AO3's
+             work-header region)
+             ══════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="24dp">
+            android:background="@color/ao3_header_bg"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="12dp">
 
-            <TextView android:id="@+id/tvDetailFandom"
-                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
-                android:layout_height="20dp"
-                android:layout_width="300dp"/>
-            <TextView android:id="@+id/tvDetailWarning"
-                android:textSize="14sp" android:textColor="?attr/colorError"
-                android:layout_height="20dp"
-                android:layout_width="300dp"/>
-            <TextView android:id="@+id/tvDetailLanguage"
-                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
-                android:layout_height="20dp"
-                android:layout_width="300dp"/>
-            <TextView android:id="@+id/tvDetailRating"
-                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
-                android:layout_height="20dp"
-                android:layout_width="300dp"/>
-            <TextView android:id="@+id/tvDetailStats"
-                android:textSize="14sp" android:textColor="?android:attr/textColorSecondary"
-                android:layout_height="20dp"
-                android:layout_width="300dp"/>
+            <!-- Fandom (italic, coloured, top) -->
+            <TextView
+                android:id="@+id/tvDetailFandom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="@color/ao3_fandom"
+                android:textStyle="italic"
+                android:layout_marginBottom="6dp" />
+
+            <!-- Title (large, bold, blue) -->
+            <TextView
+                android:id="@+id/tvDetailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/ao3_title"
+                android:lineSpacingMultiplier="1.15"
+                android:layout_marginBottom="2dp" />
+
+            <!-- Author -->
+            <TextView
+                android:id="@+id/tvDetailAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/ao3_title"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Thin rule -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/ao3_rule"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Tags block with left accent bar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Accent bar -->
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/ao3_warning"
+                    android:layout_marginEnd="10dp" />
+
+                <!-- Tags stacked -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvDetailWarnings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/ao3_warning"
+                        android:layout_marginBottom="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailRelationships"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginBottom="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailCharacters"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginBottom="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailFreeforms"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                </LinearLayout>
+            </LinearLayout>
+
         </LinearLayout>
 
-        <!-- Start Reading button -->
-        <Button
-            android:id="@+id/btnStartReading"
+        <!-- ══════════════════════════════════════════
+             STATS ROW  (compact, label-style)
+             ══════════════════════════════════════════ -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Start Reading"
-            android:textColor="@android:color/white"
-            android:backgroundTint="@color/blue"
-            android:layout_marginBottom="24dp" />
+            android:orientation="horizontal"
+            android:background="@color/ao3_stats_bg"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
 
-        <!-- Chapters list -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chapters"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:id="@+id/tvDetailStats"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvChapters"
+            <TextView
+                android:id="@+id/tvDetailDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════
+             BODY  (white / default bg)
+             ══════════════════════════════════════════ -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false" />
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp">
+
+            <!-- "Summary" label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Summary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorSecondary"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="6dp" />
+
+            <!-- Summary inset box -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/ao3_fandom"
+                    android:layout_marginEnd="10dp" />
+
+                <TextView
+                    android:id="@+id/tvDetailSummary"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="15sp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:lineSpacingMultiplier="1.4"
+                    android:fontFamily="serif" />
+
+            </LinearLayout>
+
+            <!-- Last Updated -->
+            <TextView
+                android:id="@+id/tvDetailUpdated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Start Reading button -->
+            <Button
+                android:id="@+id/btnStartReading"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Start Reading"
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/ao3_title"
+                android:layout_marginBottom="28dp" />
+
+            <!-- Chapters heading -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chapters"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/ao3_rule"
+                    android:layout_marginStart="10dp" />
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvChapters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

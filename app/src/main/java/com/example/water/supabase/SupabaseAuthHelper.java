@@ -6,8 +6,10 @@ import android.util.Log;
 
 import com.example.water.Book;
 import com.example.water.Chapter;
+import com.example.water.Comment;
 import com.example.water.FriendRequest;
 import com.example.water.Message;
+import com.example.water.Notification;
 import com.example.water.UserProfile;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -1183,4 +1185,197 @@ public class SupabaseAuthHelper {
             }
         });
     }
+
+
+
+
+
+
+
+    public interface CommentsCallback {
+        void onSuccess(List<Comment> comments);
+        void onError(String error);
+    }
+
+    public void fetchComments(String accessToken, String chapterId, CommentsCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/comments_with_username?chapter_id=eq." + chapterId +
+                "&select=*&order=created_at.asc";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Comment[] arr = new Gson().fromJson(json, Comment[].class);
+                    List<Comment> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to load comments"));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+    public void postComment(String accessToken, String chapterId, String userId,
+                            String text, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("chapter_id", chapterId);
+        body.addProperty("user_id", userId);
+        body.addProperty("text", text);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/comments")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Failed to post comment");
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+    public interface NotificationsCallback {
+        void onSuccess(List<Notification> notifications);
+        void onError(String error);
+    }
+
+    public void fetchNotifications(String accessToken, String userId, NotificationsCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/notifications?user_id=eq." + userId +
+                "&select=*&order=created_at.desc&limit=50";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Notification[] arr = new Gson().fromJson(json, Notification[].class);
+                    List<Notification> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch notifications"));
+                }
+            }
+        });
+    }
+
+
+
+
+    public void markAllNotificationsRead(String accessToken, String userId, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("is_read", true);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/notifications?user_id=eq." + userId + "&is_read=eq.false")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .patch(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Failed to mark notifications read");
+                }
+            }
+        });
+    }
+
+
+
+
+    public void createNotification(String accessToken, String userId, String type,
+                                   String message, String chapterId, String bookId,
+                                   AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("p_user_id", userId);
+        body.addProperty("p_type", type);
+        body.addProperty("p_message", message);
+        if (chapterId != null) body.addProperty("p_related_chapter_id", chapterId);
+        if (bookId != null) body.addProperty("p_related_book_id", bookId);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/rpc/create_notification")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Failed to create notification");
+                }
+            }
+        });
+    }
+
 }

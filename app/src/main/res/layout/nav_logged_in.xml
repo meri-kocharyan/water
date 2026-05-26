@@ -68,15 +68,30 @@
             android:contentDescription="@string/library"
             app:tint="?android:attr/textColorPrimary" />
 
-        <ImageButton
-            android:id="@+id/btnInbox"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="48dp"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_inbox"
-            android:contentDescription="@string/inbox"
-            app:tint="?android:attr/textColorPrimary" />
+            android:layout_weight="1">
+
+            <ImageButton
+                android:id="@+id/btnInbox"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_inbox"
+                android:contentDescription="@string/inbox"
+                app:tint="?android:attr/textColorPrimary" />
+
+            <View
+                android:id="@+id/inboxBadge"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/badge_red"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/btnUser"

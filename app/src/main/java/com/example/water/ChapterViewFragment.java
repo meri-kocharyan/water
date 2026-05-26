@@ -6,14 +6,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.water.supabase.SupabaseAuthHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChapterViewFragment extends Fragment {
 
@@ -29,6 +36,15 @@ public class ChapterViewFragment extends Fragment {
     private SessionManager sessionManager;
     private Chapter currentChapter;
     private boolean isAuthor = false;
+
+
+
+
+    private RecyclerView rvComments;
+    private EditText etCommentInput;
+    private ImageButton btnSendComment;
+    private LinearLayout postCommentArea;
+    private CommentAdapter commentAdapter;
 
     public static ChapterViewFragment newInstance(String chapterId) {
         ChapterViewFragment frag = new ChapterViewFragment();
@@ -80,6 +96,28 @@ public class ChapterViewFragment extends Fragment {
         btnNext.setOnClickListener(v -> navigateChapter(true));
 
         fetchChapterAndCheckOwnership();
+
+
+
+
+        rvComments = view.findViewById(R.id.rvComments);
+        etCommentInput = view.findViewById(R.id.etCommentInput);
+        btnSendComment = view.findViewById(R.id.btnSendComment);
+        postCommentArea = view.findViewById(R.id.postCommentArea);
+
+        rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
+        commentAdapter = new CommentAdapter(new ArrayList<>());
+        rvComments.setAdapter(commentAdapter);
+
+// Show post area only if logged in
+        if (sessionManager.isLoggedIn()) {
+            postCommentArea.setVisibility(View.VISIBLE);
+        } else {
+            postCommentArea.setVisibility(View.GONE);
+        }
+
+        btnSendComment.setOnClickListener(v -> postComment());
+
 
         return view;
     }
@@ -241,5 +279,88 @@ public class ChapterViewFragment extends Fragment {
         int num = currentChapter.getChapter_number();
         btnPrev.setVisibility(num > 1 ? View.VISIBLE : View.INVISIBLE);
         btnNext.setVisibility(num < totalChapters ? View.VISIBLE : View.INVISIBLE);
+    }
+
+
+
+
+    private void loadComments() {
+        String token = sessionManager.getAccessToken();
+        authHelper.fetchComments(token, chapterId, new SupabaseAuthHelper.CommentsCallback() {
+            @Override
+            public void onSuccess(List<Comment> comments) {
+                commentAdapter.updateList(comments);
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), "Failed to load comments", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void postComment() {
+        String text = etCommentInput.getText().toString().trim();
+        if (text.isEmpty()) return;
+        String token = sessionManager.getAccessToken();
+        String userId = sessionManager.getUserId();
+        if (token == null || userId == null) return;
+        authHelper.postComment(token, chapterId, userId, text, new SupabaseAuthHelper.AuthCallback() {
+            @Override
+            public void onSuccess(String a, String b, String c, String d) {
+                etCommentInput.setText("");
+                loadComments();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+
+
+    private void notifyAuthorIfNeeded(String chapterId) {
+        String token = sessionManager.getAccessToken();
+        String myUserId = sessionManager.getUserId();
+        if (token == null || myUserId == null) return;
+
+        // Fetch the book via chapter
+        authHelper.fetchChapterById(token, chapterId, new SupabaseAuthHelper.ChapterCallback() {
+            @Override
+            public void onSuccess(Chapter chapter) {
+                authHelper.fetchBookById(token, chapter.getBook_id(), new SupabaseAuthHelper.BookCallback() {
+                    @Override
+                    public void onSuccess(Book book) {
+                        String authorId = book.getAuthor_id();
+                        if (authorId != null && !authorId.equals(myUserId)) {
+                            // Create notification for author
+                            String message = "New comment on \"" + book.getTitle() + "\"";
+                            authHelper.createNotification(token, authorId, "comment",
+                                    message, chapterId, book.getId(),
+                                    new SupabaseAuthHelper.AuthCallback() {
+                                        @Override
+                                        public void onSuccess(String a, String b, String c, String d) {
+                                            // Notification created
+                                        }
+
+                                        @Override
+                                        public void onError(String error) {
+                                            // ignore
+                                        }
+                                    });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {}
+                });
+            }
+
+            @Override
+            public void onError(String error) {}
+        });
     }
 }
