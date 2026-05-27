@@ -1,12 +1,10 @@
 package com.example.water;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -23,13 +21,12 @@ import java.util.List;
 
 public class SearchFragment extends Fragment {
 
-    private EditText etSearch;
+    private EditText etSearchText;
+    private Button btnSearch;
     private RecyclerView rvResults;
     private BookAdapter adapter;
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
-    private Handler handler = new Handler();
-    private Runnable searchRunnable;
 
     @Nullable
     @Override
@@ -37,7 +34,8 @@ public class SearchFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        etSearch = view.findViewById(R.id.etSearch);
+        etSearchText = view.findViewById(R.id.etSearchText);
+        btnSearch = view.findViewById(R.id.btnSearch);
         rvResults = view.findViewById(R.id.rvSearchResults);
 
         authHelper = new SupabaseAuthHelper();
@@ -45,7 +43,7 @@ public class SearchFragment extends Fragment {
 
         rvResults.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookAdapter(new ArrayList<>(), book -> {
-            // Open book detail
+            // Open the book detail
             BookDetailFragment detailFrag = BookDetailFragment.newInstance(book.getId());
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -55,37 +53,39 @@ public class SearchFragment extends Fragment {
         });
         rvResults.setAdapter(adapter);
 
-        // Search with debounce (300ms after typing stops)
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        btnSearch.setOnClickListener(v -> performSearch());
 
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (searchRunnable != null) handler.removeCallbacks(searchRunnable);
-                searchRunnable = () -> performSearch(s.toString().trim());
-                handler.postDelayed(searchRunnable, 300);
-            }
+        // Also allow searching by pressing "Enter" on keyboard
+        etSearchText.setOnEditorActionListener((v, actionId, event) -> {
+            performSearch();
+            return true;
         });
 
         return view;
     }
 
-    private void performSearch(String query) {
+    private void performSearch() {
+        String query = etSearchText.getText().toString().trim();
         if (query.isEmpty()) {
-            adapter.updateList(new ArrayList<>());
+            Toast.makeText(getContext(), "Please enter a search term", Toast.LENGTH_SHORT).show();
             return;
         }
+
         String token = sessionManager.getAccessToken();
-        authHelper.searchBooks(token, query, new SupabaseAuthHelper.BooksCallback() {
+        // Use the existing fetchBooks method that already searches title and description.
+        // We'll also search by author_username because our view includes it.
+        authHelper.fetchBooks(token, query, new SupabaseAuthHelper.BooksCallback() {
             @Override
             public void onSuccess(List<Book> books) {
+                if (books.isEmpty()) {
+                    Toast.makeText(getContext(), "No works found", Toast.LENGTH_SHORT).show();
+                }
                 adapter.updateList(books);
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Search failed: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }

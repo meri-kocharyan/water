@@ -5,5 +5,11 @@
         <item name="colorPrimary">@color/blue</item>
         <item name="colorPrimaryDark">@color/blue</item>
         <item name="colorAccent">@color/blue</item>
+
+
+        <!-- <item name="colorPrimary">@color/ao3_title</item> -->
+        <item name="colorPrimaryVariant">@color/ao3_title</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
     </style>
 </resources>

@@ -6,19 +6,28 @@
     android:padding="16dp">
 
     <EditText
-        android:id="@+id/etSearch"
+        android:id="@+id/etSearchText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Search by title or author..."
-        android:imeOptions="actionSearch"
         android:inputType="text"
         android:padding="12dp"
-        android:background="@drawable/edit_text_border"
-        android:layout_marginBottom="16dp" />
+        android:background="@android:drawable/edit_text"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btnSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/ao3_title"
+        android:textColor="@android:color/white" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSearchResults"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:layout_marginTop="16dp" />
 </LinearLayout>

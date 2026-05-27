@@ -35,6 +35,9 @@ public class CreateChapterFragment extends Fragment {
 
     private int nextChapterNumber = 1;
 
+    private boolean isAnonymous = false;
+    private boolean commentsDisabled = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -60,25 +63,29 @@ public class CreateChapterFragment extends Fragment {
         if (args != null) {
             bookTitle = args.getString("title", "");
             bookDescription = args.getString("description", "");
+            String authorNotes = args.getString("notes", "");      // ← ADD
+            isAnonymous = args.getBoolean("anonymous", false);
+            commentsDisabled = args.getBoolean("commentsDisabled", false);
+
             language = args.getString("language", "Other");
             rating = args.getString("rating", "Not Rated");
             fandoms = args.getStringArrayList("fandoms");
             if (fandoms == null) fandoms = new ArrayList<>();
-        }
 
+            // Pre-fill the "notes above" field if the author wrote a preface
+            if (!authorNotes.isEmpty()) {
+                etNotesAbove.setText(authorNotes);
+                etNotesAbove.setVisibility(View.VISIBLE);
+                cbNotesAbove.setChecked(true);
+            }
+
+            // existingBookId handling (you have a second block below, keep that)
+        }
 
         if (args != null) {
             existingBookId = args.getString("book_id", null);
             if (existingBookId != null) {
                 nextChapterNumber = args.getInt("chapter_number", 1);
-            } else {
-                // Original new book flow: get title, description, etc.
-                bookTitle = args.getString("title", "");
-                bookDescription = args.getString("description", "");
-                language = args.getString("language", "Other");
-                rating = args.getString("rating", "Not Rated");
-                fandoms = args.getStringArrayList("fandoms");
-                if (fandoms == null) fandoms = new ArrayList<>();
             }
         }
 
@@ -153,6 +160,7 @@ public class CreateChapterFragment extends Fragment {
         } else {
             // Create book first
             authHelper.publishBook(token, authorId, bookTitle, bookDescription, tags, "",
+                    isAnonymous, commentsDisabled,
                     new SupabaseAuthHelper.BookCallback() {
                         @Override
                         public void onSuccess(Book book) {

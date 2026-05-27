@@ -17,6 +17,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -759,6 +760,7 @@ public class SupabaseAuthHelper {
     // Publish a new book
     public void publishBook(String accessToken, String authorId, String title,
                             String description, List<String> tags, String content,
+                            boolean isAnonymous, boolean commentsDisabled,
                             BookCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("author_id", authorId);
@@ -766,6 +768,9 @@ public class SupabaseAuthHelper {
         body.addProperty("description", description);
         body.add("tags", new Gson().toJsonTree(tags));
         body.addProperty("content", content);
+
+        body.addProperty("is_anonymous", isAnonymous);
+        body.addProperty("comments_disabled", commentsDisabled);
 
         Request request = new Request.Builder()
                 .url(SUPABASE_URL + "/rest/v1/books")
@@ -1373,6 +1378,83 @@ public class SupabaseAuthHelper {
                     notifySuccess(callback, null, null, null, null);
                 } else {
                     notifyError(callback, "Failed to create notification");
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+    public void advancedSearch(String accessToken, String textQuery,
+                               String fandom, List<String> warnings,
+                               String rating, String language,
+                               int minWords, int maxWords,
+                               BooksCallback callback) {
+        StringBuilder urlBuilder = new StringBuilder(SUPABASE_URL + "/rest/v1/books_with_stats?select=*");
+        List<String> filters = new ArrayList<>();
+
+        // Title / author text search
+        if (textQuery != null && !textQuery.isEmpty()) {
+            filters.add("or(title.ilike.*" + textQuery + "*,author_username.ilike.*" + textQuery + "*)");
+        }
+
+        // Fandom (exact match inside tags array)
+        if (fandom != null && !fandom.isEmpty() && !fandom.equals("All")) {
+            filters.add("tags.cs.{Fandom:" + fandom + "}");
+        }
+
+        // Warnings (each selected)
+        if (warnings != null) {
+            for (String w : warnings) {
+                filters.add("tags.cs.{Warning:" + w + "}");
+            }
+        }
+
+        // Rating
+        if (rating != null && !rating.isEmpty() && !rating.equals("All")) {
+            filters.add("tags.cs.{Rating:" + rating + "}");
+        }
+
+        // Language
+        if (language != null && !language.isEmpty() && !language.equals("All")) {
+            filters.add("tags.cs.{Language:" + language + "}");
+        }
+
+        // Word count range
+        if (minWords > 0) filters.add("word_count.gte." + minWords);
+        if (maxWords > 0) filters.add("word_count.lte." + maxWords);
+
+        // Build query string
+        if (!filters.isEmpty()) {
+            urlBuilder.append("&and=(").append(String.join(",", filters)).append(")");
+        }
+        urlBuilder.append("&order=created_at.desc&limit=50");
+
+        String url = urlBuilder.toString();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Book[] arr = new Gson().fromJson(json, Book[].class);
+                    List<Book> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Search failed"));
                 }
             }
         });
