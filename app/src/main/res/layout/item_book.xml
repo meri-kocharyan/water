@@ -62,7 +62,7 @@
         android:layout_height="wrap_content"
         android:textSize="13sp"
         android:textStyle="bold"
-        android:textColor="@color/ao3_warning"
+        android:textColor="?android:attr/textColorPrimary"
         android:layout_marginBottom="1dp" />
 
     <TextView

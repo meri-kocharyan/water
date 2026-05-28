@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -59,7 +61,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             holder.tvRightContent.setText(msg.getContent());
             holder.tvRightTime.setText(timeStr);
             // My avatar is on right side – load my profile image (currently default)
-            holder.ivRightAvatar.setImageResource(R.drawable.ic_default_avatar);
+            Glide.with(holder.ivLeftAvatar.getContext())
+                    .load(R.drawable.ic_default_avatar)   // placeholder for now
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_default_avatar)
+                    .error(R.drawable.ic_default_avatar)
+                    .into(holder.ivLeftAvatar);
         } else {
             // Show left container, hide right
             holder.leftContainer.setVisibility(View.VISIBLE);

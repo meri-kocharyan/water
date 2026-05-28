@@ -8,114 +8,94 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:orientation="vertical">
 
-        <!-- Header -->
+        <!-- Header: Chapter X -->
+
         <TextView
+            android:id="@+id/tvChapterHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Chapter 1"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="24dp" />
+            android:background="@color/blue"
+            android:paddingStart="16dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp"
+            android:text="New Chapter"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/ao3_rule" />
 
         <!-- Chapter Title -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chapter Title"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="4dp" />
-
+            style="@style/FieldLabel"
+            android:layout_marginLeft="5dp"
+            android:textSize="18sp"
+            android:text="Chapter Title" />
         <EditText
             android:id="@+id/etChapterTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Leave blank for 'Chapter 1'"
-            android:inputType="text"
-            android:textSize="16sp"
-            android:padding="12dp"
-            android:background="@drawable/edit_text_border"
-            android:layout_marginBottom="16dp" />
+            style="@style/EditText"
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"/>
 
-        <!-- Summary checkbox + field -->
+        <!-- Chapter Summary checkbox + field -->
         <CheckBox
             android:id="@+id/cbAddSummary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/CheckBox"
             android:text="Add chapter summary"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginTop="8dp" />
 
         <EditText
             android:id="@+id/etChapterSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/EditText"
             android:hint="Chapter summary"
             android:inputType="textMultiLine"
             android:minLines="2"
             android:gravity="top"
-            android:textSize="16sp"
-            android:padding="12dp"
-            android:background="@drawable/edit_text_border"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp" />
+            android:visibility="gone" />
 
         <!-- Notes above checkbox + field -->
         <CheckBox
             android:id="@+id/cbNotesAbove"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add notes above chapter"
-            android:layout_marginBottom="8dp" />
+            style="@style/CheckBox"
+            android:text="Add notes at the beginning" />
 
         <EditText
             android:id="@+id/etNotesAbove"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Notes at the beginning"
+            style="@style/EditText"
+            android:hint="Notes before the chapter text"
             android:inputType="textMultiLine"
             android:minLines="2"
             android:gravity="top"
-            android:textSize="16sp"
-            android:padding="12dp"
-            android:background="@drawable/edit_text_border"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp" />
+            android:visibility="gone" />
 
         <!-- Notes below checkbox + field -->
         <CheckBox
             android:id="@+id/cbNotesBelow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add notes below chapter"
-            android:layout_marginBottom="8dp" />
+            style="@style/CheckBox"
+            android:text="Add notes at the end" />
 
         <EditText
             android:id="@+id/etNotesBelow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Notes at the end"
+            style="@style/EditText"
+            android:hint="Notes after the chapter text"
             android:inputType="textMultiLine"
             android:minLines="2"
             android:gravity="top"
-            android:textSize="16sp"
-            android:padding="12dp"
-            android:background="@drawable/edit_text_border"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp" />
+            android:visibility="gone" />
 
         <!-- Chapter Content -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="4dp" />
-
+            style="@style/FieldLabel"
+            android:textSize="18sp"
+            android:layout_marginLeft="5dp"
+            android:text="Content" />
         <EditText
             android:id="@+id/etChapterContent"
             android:layout_width="match_parent"
@@ -126,17 +106,27 @@
             android:textSize="16sp"
             android:padding="12dp"
             android:background="@drawable/edit_text_border"
-            android:minHeight="300dp"
-            android:layout_marginBottom="24dp" />
+            android:minHeight="200dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"/>
 
-        <!-- Publish button -->
-        <Button
-            android:id="@+id/btnPublish"
+        <!-- Action buttons -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Publish"
-            android:backgroundTint="@color/blue"
-            android:textColor="@android:color/white"
-            android:padding="12dp" />
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/btnPublish"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Post Chapter"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/ao3_title" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -31,15 +31,17 @@ public class BookDetailFragment extends Fragment {
     private static final String ARG_BOOK_ID = "book_id";
     private String bookId;
 
-    private TextView tvFandom, tvTitle, tvDate, tvAuthor;
-    private TextView tvWarnings, tvRelationships, tvCharacters, tvFreeforms;
-    private TextView tvSummary, tvStats, tvUpdated;
-    private Button btnStartReading;
+    private TextView tvTitle, tvDate, tvFandom;
+    private TextView tvWarnings, tvRating, tvCategories, tvRelationships, tvCharacters, tvFreeforms;
+    private TextView tvStats;
+    private Button btnStartReading, btnToggleChapters;
     private RecyclerView rvChapters;
     private ChapterAdapter chapterAdapter;
 
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
+
+    private boolean chaptersExpanded = true;
 
     public static BookDetailFragment newInstance(String bookId) {
         BookDetailFragment frag = new BookDetailFragment();
@@ -63,18 +65,18 @@ public class BookDetailFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_book_detail, container, false);
 
-        tvFandom        = view.findViewById(R.id.tvDetailFandom);
         tvTitle         = view.findViewById(R.id.tvDetailTitle);
         tvDate          = view.findViewById(R.id.tvDetailDate);
-        tvAuthor        = view.findViewById(R.id.tvDetailAuthor);
+        tvFandom        = view.findViewById(R.id.tvDetailFandom);
         tvWarnings      = view.findViewById(R.id.tvDetailWarnings);
+        tvRating        = view.findViewById(R.id.tvDetailRating);
+        tvCategories    = view.findViewById(R.id.tvDetailCategories);
         tvRelationships = view.findViewById(R.id.tvDetailRelationships);
         tvCharacters    = view.findViewById(R.id.tvDetailCharacters);
         tvFreeforms     = view.findViewById(R.id.tvDetailFreeforms);
-        tvSummary       = view.findViewById(R.id.tvDetailSummary);
         tvStats         = view.findViewById(R.id.tvDetailStats);
-        tvUpdated       = view.findViewById(R.id.tvDetailUpdated);
         btnStartReading = view.findViewById(R.id.btnStartReading);
+        btnToggleChapters = view.findViewById(R.id.btnToggleChapters);
         rvChapters      = view.findViewById(R.id.rvChapters);
 
         authHelper = new SupabaseAuthHelper();
@@ -116,6 +118,18 @@ public class BookDetailFragment extends Fragment {
             });
         });
 
+        // Toggle chapters visibility
+        btnToggleChapters.setOnClickListener(v -> {
+            if (chaptersExpanded) {
+                rvChapters.setVisibility(View.GONE);
+                btnToggleChapters.setText("Show");
+            } else {
+                rvChapters.setVisibility(View.VISIBLE);
+                btnToggleChapters.setText("Hide");
+            }
+            chaptersExpanded = !chaptersExpanded;
+        });
+
         loadBookDetails();
         loadChapters();
 
@@ -138,9 +152,10 @@ public class BookDetailFragment extends Fragment {
     }
 
     private void displayBook(Book book) {
-        // Parse tags (same logic as BookAdapter)
+        // Parse tags
         String fandom = "";
         StringBuilder warnings = new StringBuilder();
+        StringBuilder categories = new StringBuilder();
         StringBuilder relationships = new StringBuilder();
         StringBuilder characters = new StringBuilder();
         StringBuilder freeforms = new StringBuilder();
@@ -154,6 +169,9 @@ public class BookDetailFragment extends Fragment {
                 } else if (tag.startsWith("Warning:")) {
                     if (warnings.length() > 0) warnings.append(", ");
                     warnings.append(tag.substring(8).trim());
+                } else if (tag.startsWith("Category:")) {
+                    if (categories.length() > 0) categories.append(", ");
+                    categories.append(tag.substring(9).trim());
                 } else if (tag.startsWith("Relationship:")) {
                     if (relationships.length() > 0) relationships.append(", ");
                     relationships.append(tag.substring(13).trim());
@@ -171,9 +189,7 @@ public class BookDetailFragment extends Fragment {
             }
         }
 
-        tvFandom.setText(fandom);
-
-        // Title + Author in one line with colors (matching adapter)
+        // Title (blue) with author appended in black
         String author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
         String titlePart = book.getTitle();
         String authorPart = " by " + author;
@@ -184,75 +200,51 @@ public class BookDetailFragment extends Fragment {
                 titlePart.length(), span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         tvTitle.setText(span);
 
-        // Date
+        // Date (right-aligned, same line)
         String datePosted = formatDate(book.getDatePosted());
-        if (!datePosted.isEmpty()) {
-            tvDate.setText(datePosted);
-            tvDate.setVisibility(View.VISIBLE);
-        } else {
-            tvDate.setVisibility(View.GONE);
-        }
+        tvDate.setText(datePosted);
+        tvDate.setVisibility(datePosted.isEmpty() ? View.GONE : View.VISIBLE);
 
-        tvAuthor.setText("by " + author);
+        // Fandom
+        tvFandom.setText(fandom.isEmpty() ? "" : fandom);
+        tvFandom.setVisibility(fandom.isEmpty() ? View.GONE : View.VISIBLE);
 
-        // Tags visibility
+        // Warnings (bold)
         String warnText = warnings.toString();
-        if (!warnText.isEmpty()) {
-            tvWarnings.setText(warnText);
-            tvWarnings.setVisibility(View.VISIBLE);
-        } else {
-            tvWarnings.setVisibility(View.GONE);
-        }
+        tvWarnings.setText(warnText.isEmpty() ? "" : "Archive Warning: " + warnText);
+        tvWarnings.setVisibility(warnText.isEmpty() ? View.GONE : View.VISIBLE);
 
+        // Rating (italic)
+        tvRating.setText(rating.isEmpty() ? "" : "Rating: " + rating);
+        tvRating.setVisibility(rating.isEmpty() ? View.GONE : View.VISIBLE);
+
+        // Categories
+        String catText = categories.toString();
+        tvCategories.setText(catText.isEmpty() ? "" : "Category: " + catText);
+        tvCategories.setVisibility(catText.isEmpty() ? View.GONE : View.VISIBLE);
+
+        // Relationships
         String relText = relationships.toString();
-        if (!relText.isEmpty()) {
-            tvRelationships.setText(relText);
-            tvRelationships.setVisibility(View.VISIBLE);
-        } else {
-            tvRelationships.setVisibility(View.GONE);
-        }
+        tvRelationships.setText(relText.isEmpty() ? "" : "Relationship: " + relText);
+        tvRelationships.setVisibility(relText.isEmpty() ? View.GONE : View.VISIBLE);
 
+        // Characters
         String charText = characters.toString();
-        if (!charText.isEmpty()) {
-            tvCharacters.setText(charText);
-            tvCharacters.setVisibility(View.VISIBLE);
-        } else {
-            tvCharacters.setVisibility(View.GONE);
-        }
+        tvCharacters.setText(charText.isEmpty() ? "" : "Character: " + charText);
+        tvCharacters.setVisibility(charText.isEmpty() ? View.GONE : View.VISIBLE);
 
+        // Freeforms
         String freeText = freeforms.toString();
-        if (!freeText.isEmpty()) {
-            tvFreeforms.setText(freeText);
-            tvFreeforms.setVisibility(View.VISIBLE);
-        } else {
-            tvFreeforms.setVisibility(View.GONE);
-        }
+        tvFreeforms.setText(freeText.isEmpty() ? "" : "Additional Tags: " + freeText);
+        tvFreeforms.setVisibility(freeText.isEmpty() ? View.GONE : View.VISIBLE);
 
-        // Summary
-        String summary = book.getDescription();
-        if (summary != null && !summary.isEmpty()) {
-            tvSummary.setText(summary);
-            tvSummary.setVisibility(View.VISIBLE);
-        } else {
-            tvSummary.setVisibility(View.GONE);
-        }
-
-        // Stats
+        // Stats (between dividers)
         StringBuilder stats = new StringBuilder();
         if (!language.isEmpty()) stats.append("Language: ").append(language).append("  ");
-        if (!rating.isEmpty())   stats.append("Rating: ").append(rating).append("  ");
+        if (!rating.isEmpty()) stats.append("Rating: ").append(rating).append("  ");
         stats.append("Words: ").append(book.getWord_count());
         stats.append("  Chapters: ").append(book.getChapter_count());
         tvStats.setText(stats.toString().trim());
-
-        // Last updated
-        String updated = formatDate(book.getLastUpdated());
-        if (!updated.isEmpty()) {
-            tvUpdated.setText("Updated: " + updated);
-            tvUpdated.setVisibility(View.VISIBLE);
-        } else {
-            tvUpdated.setVisibility(View.GONE);
-        }
     }
 
     private void loadChapters() {

@@ -12,4 +12,5 @@
     <color name="ao3_header_bg">#FFF9F4</color>  <!-- warm off-white -->
     <color name="ao3_stats_bg">#F0EBE6</color>   <!-- slightly darker strip -->
     <color name="ao3_rule">#DDCCBB</color>        <!-- warm grey divider -->
+    <color name="light_blue">#cedeed</color>
 </resources>

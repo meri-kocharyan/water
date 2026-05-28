@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -98,9 +99,15 @@ public class CreateChapterFragment extends Fragment {
                 etNotesBelow.setVisibility(isChecked ? View.VISIBLE : View.GONE));
 
         // Pre-fill default chapter title
-        etChapterTitle.setText("Chapter 1");
+        etChapterTitle.setText("Chapter " + nextChapterNumber);
 
         btnPublish.setOnClickListener(v -> publishEverything());
+
+        // Update header
+        TextView tvHeader = view.findViewById(R.id.tvChapterHeader);
+        if (tvHeader != null) {
+            tvHeader.setText("Chapter " + nextChapterNumber);
+        }
 
         return view;
 
@@ -125,13 +132,14 @@ public class CreateChapterFragment extends Fragment {
 
         // Build tags list
         List<String> tags = new ArrayList<>();
-        if (!language.equals("Other")) {
-            tags.add("Language:" + language);
+        Bundle args = getArguments();
+        if (args != null) {
+            ArrayList<String> passedTags = args.getStringArrayList("tags");
+            if (passedTags != null) {
+                tags.addAll(passedTags);
+            }
         }
-        tags.add("Rating:" + rating);
-        for (String fandom : fandoms) {
-            tags.add("Fandom:" + fandom);
-        }
+
 
         String token = sessionManager.getAccessToken();
         String authorId = sessionManager.getUserId();
@@ -159,9 +167,8 @@ public class CreateChapterFragment extends Fragment {
                     });
         } else {
             // Create book first
-            authHelper.publishBook(token, authorId, bookTitle, bookDescription, tags, "",
-                    isAnonymous, commentsDisabled,
-                    new SupabaseAuthHelper.BookCallback() {
+            authHelper.publishBook(token, authorId, bookTitle, bookDescription, tags,
+                    isAnonymous, commentsDisabled, new SupabaseAuthHelper.BookCallback() {
                         @Override
                         public void onSuccess(Book book) {
                             // Now create chapter 1

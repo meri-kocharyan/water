@@ -15,8 +15,8 @@ import com.google.android.material.tabs.TabLayout;
 public class BookManagementFragment extends Fragment {
 
     private static final String ARG_BOOK_ID = "book_id";
-
     private String bookId;
+
     private TabLayout tabLayout;
     private FrameLayout container;
 

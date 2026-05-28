@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Row 1: Title + Date on same line -->
+        <!-- Title + Date row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 android:textColor="?android:attr/textColorSecondary" />
         </LinearLayout>
 
-        <!-- Fandom (right under title) -->
+        <!-- Fandom -->
         <TextView
             android:id="@+id/tvDetailFandom"
             android:layout_width="wrap_content"
@@ -52,7 +52,6 @@
             android:orientation="vertical"
             android:layout_marginBottom="8dp">
 
-            <!-- Warnings (bold) -->
             <TextView
                 android:id="@+id/tvDetailWarnings"
                 android:layout_width="match_parent"
@@ -62,7 +61,6 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
-            <!-- Rating (italic) -->
             <TextView
                 android:id="@+id/tvDetailRating"
                 android:layout_width="wrap_content"
@@ -72,7 +70,6 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
-            <!-- Categories -->
             <TextView
                 android:id="@+id/tvDetailCategories"
                 android:layout_width="match_parent"
@@ -81,7 +78,6 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
-            <!-- Relationships -->
             <TextView
                 android:id="@+id/tvDetailRelationships"
                 android:layout_width="match_parent"
@@ -90,7 +86,6 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
-            <!-- Characters -->
             <TextView
                 android:id="@+id/tvDetailCharacters"
                 android:layout_width="match_parent"
@@ -99,7 +94,6 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
-            <!-- Freeforms -->
             <TextView
                 android:id="@+id/tvDetailFreeforms"
                 android:layout_width="match_parent"
@@ -108,7 +102,7 @@
                 android:textColor="?android:attr/textColorPrimary" />
         </LinearLayout>
 
-        <!-- Stats between two divider lines -->
+        <!-- Stats between dividers -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -129,54 +123,33 @@
             android:background="?android:attr/listDivider"
             android:layout_marginBottom="16dp" />
 
-        <!-- Start Reading button -->
-        <Button
-            android:id="@+id/btnStartReading"
+        <!-- Summary -->
+        <TextView
+            android:id="@+id/tvDetailSummary"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Start Reading"
-            android:textColor="@android:color/white"
+            android:layout_height="wrap_content"
             android:textSize="15sp"
-            android:textStyle="bold"
-            android:backgroundTint="@color/ao3_title"
+            android:textColor="?android:attr/textColorPrimary"
+            android:lineSpacingMultiplier="1.4"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp" />
 
-        <!-- Chapters header (sky light blue background) -->
-        <LinearLayout
+        <!-- Edit and Delete buttons -->
+        <Button
+            android:id="@+id/btnEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="#E3F2FD"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp">
+            android:text="Edit"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/ao3_title"
+            android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Chapters"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?android:attr/textColorPrimary" />
-
-            <Button
-                android:id="@+id/btnToggleChapters"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hide"
-                android:textSize="14sp"
-                android:background="?android:attr/selectableItemBackground" />
-        </LinearLayout>
-
-        <!-- Chapters list (initially visible) -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvChapters"
+        <Button
+            android:id="@+id/btnDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            android:padding="8dp" />
+            android:text="Delete"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#CC0000" />
     </LinearLayout>
 </ScrollView>

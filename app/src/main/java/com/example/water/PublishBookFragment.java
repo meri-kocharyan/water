@@ -203,12 +203,11 @@ public class PublishBookFragment extends Fragment {
 
         // Relationships
         for (String r : selectedRelationships) {
-            if (!r.isEmpty()) tags.add(r);
+            if (!r.isEmpty()) tags.add("Relationship:" + r);
         }
-
         // Characters
         for (String c : selectedCharacters) {
-            if (!c.isEmpty()) tags.add(c);
+            if (!c.isEmpty()) tags.add("Character:" + c);
         }
 
         // Freeforms

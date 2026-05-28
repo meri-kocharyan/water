@@ -534,7 +534,6 @@ public class SupabaseAuthHelper {
         JsonObject body = new JsonObject();
         body.addProperty("sender_id", senderId);
         body.addProperty("receiver_id", receiverId);
-        body.addProperty("content", content);
 
         Request request = new Request.Builder()
                 .url(SUPABASE_URL + "/rest/v1/messages")
@@ -758,8 +757,9 @@ public class SupabaseAuthHelper {
     }
 
     // Publish a new book
+
     public void publishBook(String accessToken, String authorId, String title,
-                            String description, List<String> tags, String content,
+                            String description, List<String> tags,
                             boolean isAnonymous, boolean commentsDisabled,
                             BookCallback callback) {
         JsonObject body = new JsonObject();
@@ -767,8 +767,6 @@ public class SupabaseAuthHelper {
         body.addProperty("title", title);
         body.addProperty("description", description);
         body.add("tags", new Gson().toJsonTree(tags));
-        body.addProperty("content", content);
-
         body.addProperty("is_anonymous", isAnonymous);
         body.addProperty("comments_disabled", commentsDisabled);
 
@@ -799,6 +797,7 @@ public class SupabaseAuthHelper {
                     }
                 } else {
                     String err = response.body() != null ? response.body().string() : "";
+                    Log.e("PUBLISH_ERROR", "Full Supabase error: " + err);
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Publish failed: " + err));
                 }
             }
@@ -841,7 +840,7 @@ public class SupabaseAuthHelper {
 
     // Fetch a single book by ID
     public void fetchBookById(String accessToken, String bookId, BookCallback callback) {
-        String url = SUPABASE_URL + "/rest/v1/books?id=eq." + bookId + "&select=*";
+        String url = SUPABASE_URL + "/rest/v1/books_with_stats?id=eq." + bookId + "&select=*";
 
         Request request = new Request.Builder()
                 .url(url)
@@ -1033,11 +1032,15 @@ public class SupabaseAuthHelper {
 
 
     public void updateBook(String accessToken, String bookId, String title,
-                           String description, List<String> tags, AuthCallback callback) {
+                           String description, List<String> tags,
+                           boolean isAnonymous, boolean commentsDisabled,
+                           AuthCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("title", title);
         body.addProperty("description", description);
         body.add("tags", new Gson().toJsonTree(tags));
+        body.addProperty("is_anonymous", isAnonymous);
+        body.addProperty("comments_disabled", commentsDisabled);
 
         Request request = new Request.Builder()
                 .url(SUPABASE_URL + "/rest/v1/books?id=eq." + bookId)
@@ -1053,13 +1056,13 @@ public class SupabaseAuthHelper {
             public void onFailure(Call call, IOException e) {
                 notifyError(callback, e.getMessage());
             }
-
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     notifySuccess(callback, null, null, null, null);
                 } else {
-                    notifyError(callback, "Update failed");
+                    String err = response.body() != null ? response.body().string() : "";
+                    notifyError(callback, "Update failed: " + err);
                 }
             }
         });
@@ -1455,6 +1458,113 @@ public class SupabaseAuthHelper {
                     new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
                 } else {
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Search failed"));
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+    public void uploadAvatar(String accessToken, String userId, byte[] imageBytes,
+                             String fileExtension, AuthCallback callback) {
+        if (imageBytes == null || imageBytes.length == 0) {
+            notifyError(callback, "Image data is empty");
+            return;
+        }
+
+        String fileName = userId + "." + (fileExtension.startsWith(".") ? fileExtension.substring(1) : fileExtension);
+        String url = SUPABASE_URL + "/storage/v1/object/avatars/" + fileName;
+        String mimeType = fileExtension.equalsIgnoreCase("png") ? "image/png" : "image/jpeg";
+
+        Log.d("UPLOAD_DEBUG", "Uploading " + imageBytes.length + " bytes to " + url + " as " + mimeType);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", mimeType)
+                .put(RequestBody.create(imageBytes, MediaType.parse(mimeType)))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("UPLOAD_DEBUG", "Network failure", e);
+                notifyError(callback, "Network error: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    Log.d("UPLOAD_DEBUG", "Upload successful");
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    String errorBody = response.body() != null ? response.body().string() : "no body";
+                    Log.e("UPLOAD_DEBUG", "Upload failed: HTTP " + response.code() + " " + errorBody);
+                    notifyError(callback, "Upload failed (HTTP " + response.code() + "): " + errorBody);
+                }
+            }
+        });
+    }
+
+    public void updateAvatarUrl(String accessToken, String userId, String avatarUrl,
+                                AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("avatar_url", avatarUrl);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/profiles?user_id=eq." + userId)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .patch(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Failed to update avatar URL");
+                }
+            }
+        });
+    }
+
+
+
+
+
+    public void deleteBook(String accessToken, String bookId, AuthCallback callback) {
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/books?id=eq." + bookId)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .delete()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Delete failed");
                 }
             }
         });

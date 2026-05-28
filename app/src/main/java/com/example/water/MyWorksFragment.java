@@ -9,7 +9,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,9 +42,10 @@ public class MyWorksFragment extends Fragment {
 
         rvBooks.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        rvBooks.addItemDecoration(
-                new androidx.recyclerview.widget.DividerItemDecoration(
-                        requireContext(), LinearLayoutManager.VERTICAL));
+        DividerItemDecoration divider = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL);
+        divider.setDrawable(ContextCompat.getDrawable(getContext(), R.drawable.divider_thick));
+        rvBooks.addItemDecoration(divider);
+
 
         adapter = new BookAdapter(new ArrayList<>(), book -> {
             BookManagementFragment managementFrag = BookManagementFragment.newInstance(book.getId());
@@ -52,6 +55,8 @@ public class MyWorksFragment extends Fragment {
                     .addToBackStack("book_management")
                     .commit();
         });
+
+
         rvBooks.setAdapter(adapter);
 
         btnNewWork.setOnClickListener(v -> {

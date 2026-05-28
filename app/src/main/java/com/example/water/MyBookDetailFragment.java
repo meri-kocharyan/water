@@ -1,5 +1,6 @@
 package com.example.water;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -23,7 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class BookDetailsChildFragment extends Fragment {
+public class MyBookDetailFragment extends Fragment {
 
     private static final String ARG_BOOK_ID = "book_id";
     private String bookId;
@@ -36,10 +37,8 @@ public class BookDetailsChildFragment extends Fragment {
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
 
-    private TextView tvSummary;
-
-    public static BookDetailsChildFragment newInstance(String bookId) {
-        BookDetailsChildFragment frag = new BookDetailsChildFragment();
+    public static MyBookDetailFragment newInstance(String bookId) {
+        MyBookDetailFragment frag = new MyBookDetailFragment();
         Bundle args = new Bundle();
         args.putString(ARG_BOOK_ID, bookId);
         frag.setArguments(args);
@@ -72,7 +71,6 @@ public class BookDetailsChildFragment extends Fragment {
         tvStats = view.findViewById(R.id.tvDetailStats);
         btnEdit = view.findViewById(R.id.btnEdit);
         btnDelete = view.findViewById(R.id.btnDelete);
-        tvSummary = view.findViewById(R.id.tvDetailSummary);
 
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
@@ -80,6 +78,7 @@ public class BookDetailsChildFragment extends Fragment {
         loadBookDetails();
 
         btnEdit.setOnClickListener(v -> {
+            // Open edit screen
             EditBookFragment editFrag = EditBookFragment.newInstance(bookId);
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -98,6 +97,7 @@ public class BookDetailsChildFragment extends Fragment {
                             @Override
                             public void onSuccess(String a, String b, String c, String d) {
                                 Toast.makeText(getContext(), "Work deleted", Toast.LENGTH_SHORT).show();
+                                // Go back to My Works
                                 requireActivity().getSupportFragmentManager().popBackStack();
                             }
 
@@ -130,6 +130,7 @@ public class BookDetailsChildFragment extends Fragment {
     }
 
     private void displayBook(Book book) {
+        // Same parsing logic as BookDetailFragment
         String fandom = "";
         StringBuilder warnings = new StringBuilder();
         StringBuilder categories = new StringBuilder();
@@ -222,18 +223,10 @@ public class BookDetailsChildFragment extends Fragment {
         stats.append("Words: ").append(book.getWord_count());
         stats.append("  Chapters: ").append(book.getChapter_count());
         tvStats.setText(stats.toString().trim());
-
-        // Summary
-        String summary = book.getDescription();
-        if (summary != null && !summary.isEmpty()) {
-            tvSummary.setText(summary);
-            tvSummary.setVisibility(View.VISIBLE);
-        } else {
-            tvSummary.setVisibility(View.GONE);
-        }
     }
 
     private String formatDate(String raw) {
+        // same as before
         if (raw == null || raw.isEmpty()) return "";
         String[] patterns = {"yyyy-MM-dd'T'HH:mm:ssX", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"};
         for (String pattern : patterns) {
