@@ -169,7 +169,8 @@
                 android:layout_weight="1"
                 android:text="Bookmark"
                 android:textColor="@color/ao3_title"
-                android:backgroundTint="@android:color/transparent" />
+                android:background="@drawable/btn_rounded_border"
+                android:backgroundTint="@color/ao3_title"/>
 
             <Button
                 android:id="@+id/btnSubscribe"
@@ -178,7 +179,8 @@
                 android:layout_weight="1"
                 android:text="Subscribe"
                 android:textColor="@color/ao3_title"
-                android:backgroundTint="@android:color/transparent" />
+                android:background="@drawable/btn_rounded_border"
+                android:backgroundTint="@color/ao3_title"/>
         </LinearLayout>
 
         <!-- Chapters header (sky light blue background) -->

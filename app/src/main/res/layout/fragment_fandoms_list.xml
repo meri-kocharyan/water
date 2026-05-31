@@ -1,11 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?android:attr/colorBackground">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fandoms"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary"
+        android:background="@color/light_blue"
+        android:padding="16dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/ao3_rule" />
+
+    <!-- Show all checkbox -->
+
+    <CheckBox
+        android:id="@+id/cbShowAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:padding="8dp"
+        android:text="Show all fandoms" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFandoms"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp" />
-</FrameLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

@@ -13,6 +13,13 @@ public class Book {
     private String updated_at;
     // optional: author username (we'll fetch separately later)
 
+
+    private boolean is_anonymous;
+    private boolean comments_disabled;
+
+    public boolean isIs_anonymous() { return is_anonymous; }
+    public boolean isComments_disabled() { return comments_disabled; }
+
     // getters
     public String getId() { return id; }
     public String getAuthor_id() { return author_id; }

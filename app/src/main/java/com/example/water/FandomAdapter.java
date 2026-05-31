@@ -12,49 +12,46 @@ import java.util.List;
 
 public class FandomAdapter extends RecyclerView.Adapter<FandomAdapter.ViewHolder> {
 
-    private List<String> fandoms;
-    private OnItemClickListener listener;
+    private List<FandomStat> fandomList;
+    private OnFandomClickListener listener;
 
-    public interface OnItemClickListener {
-        void onItemClick(String fandom);
+    public interface OnFandomClickListener {
+        void onFandomClick(FandomStat fandom);
     }
 
-    public FandomAdapter(List<String> fandoms, OnItemClickListener listener) {
-        this.fandoms = fandoms;
+    public FandomAdapter(List<FandomStat> fandomList, OnFandomClickListener listener) {
+        this.fandomList = fandomList;
         this.listener = listener;
     }
 
-    public void setData(List<String> newFandoms) {
-        this.fandoms = newFandoms;
+    public void updateList(List<FandomStat> newList) {
+        this.fandomList = newList;
         notifyDataSetChanged();
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.simple_list_item_1, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_fandom, parent, false);
         return new ViewHolder(v);
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String fandom = fandoms.get(position);
-        holder.textView.setText(fandom);
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(fandom));
+    @Override public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        FandomStat fandom = fandomList.get(position);
+        holder.tvName.setText(fandom.getName());
+        holder.tvCount.setText("(" + fandom.getBook_count() + ")");
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onFandomClick(fandom);
+        });
     }
 
-    @Override
-    public int getItemCount() {
-        return fandoms != null ? fandoms.size() : 0;
-    }
+    @Override public int getItemCount() { return fandomList.size(); }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView textView;
-
+        TextView tvName, tvCount;
         ViewHolder(View itemView) {
             super(itemView);
-            textView = itemView.findViewById(android.R.id.text1);
+            tvName = itemView.findViewById(R.id.tvFandomName);
+            tvCount = itemView.findViewById(R.id.tvFandomCount);
         }
     }
 }

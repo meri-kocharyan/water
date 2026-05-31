@@ -51,8 +51,14 @@ public class LoginFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
+
         txtForgotPassword.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Forgot password? (not implemented yet)", Toast.LENGTH_SHORT).show();
+            ForgotPasswordFragment frag = new ForgotPasswordFragment();
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, frag)
+                    .addToBackStack("forgot_password")
+                    .commit();
         });
 
         return view;

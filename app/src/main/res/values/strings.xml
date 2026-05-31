@@ -68,4 +68,52 @@
         <item>Anime</item>
         <item>K-pop</item>
     </string-array>
+
+
+
+    <string-array name="rating_options_search">
+        <item>All</item>
+        <item>Not Rated</item>
+        <item>General Audiences</item>
+        <item>Teen and Up</item>
+        <item>Mature</item>
+        <item>Explicit</item>
+    </string-array>
+
+    <string-array name="language_options_search">
+        <item>All</item>
+        <item>English</item>
+        <item>Spanish</item>
+        <item>French</item>
+        <item>German</item>
+        <item>Chinese</item>
+        <item>Japanese</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="fandom_search_array">
+        <item>All</item>
+        <!-- This will be replaced dynamically at runtime -->
+    </string-array>
+
+
+    <string-array name="search_rating_options">
+        <item>All</item>
+        <item>Not Rated</item>
+        <item>General Audiences</item>
+        <item>Teen and Up</item>
+        <item>Mature</item>
+        <item>Explicit</item>
+    </string-array>
+
+    <string-array name="search_language_options">
+        <item>All</item>
+        <item>English</item>
+        <item>Spanish</item>
+        <item>French</item>
+        <item>German</item>
+        <item>Chinese</item>
+        <item>Japanese</item>
+        <item>Other</item>
+    </string-array>
 </resources>

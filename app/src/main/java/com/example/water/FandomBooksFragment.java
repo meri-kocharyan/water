@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,9 @@ public class FandomBooksFragment extends Fragment {
     private BookAdapter adapter;
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
+
+    private TextView tvFandomTitle, tvBookCount;
+
 
     public static FandomBooksFragment newInstance(String fandom) {
         FandomBooksFragment frag = new FandomBooksFragment();
@@ -48,6 +52,13 @@ public class FandomBooksFragment extends Fragment {
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
 
+        tvFandomTitle = view.findViewById(R.id.tvFandomTitle);
+        tvBookCount = view.findViewById(R.id.tvFandomBookCount);
+
+        tvFandomTitle.setText(fandomName);
+
+        tvBookCount = view.findViewById(R.id.tvFandomBookCount);
+
         rvBooks.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookAdapter(new ArrayList<>(), book -> {
             BookDetailFragment detailFrag = BookDetailFragment.newInstance(book.getId());
@@ -65,12 +76,29 @@ public class FandomBooksFragment extends Fragment {
 
     private void loadBooks() {
         String token = sessionManager.getAccessToken();
-        authHelper.advancedSearch(token, null, fandomName, null, null, null, 0, 0,
+        authHelper.advancedSearch(token,
+                null,                     // title
+                null,                     // author
+                fandomName,               // fandom
+                null,                     // warnings
+                null,                     // rating
+                null,                     // categories
+                null,                     // language
+                null,                     // characters
+                null,                     // relationships
+                null,                     // freeforms
+                0, 0,                     // min/max words
                 new SupabaseAuthHelper.BooksCallback() {
-                    @Override public void onSuccess(List<Book> books) {
+                    @Override
+                    public void onSuccess(List<Book> books) {
                         adapter.updateList(books);
+                        if (tvBookCount != null) {
+                            tvBookCount.setText(books.size() + " works");
+                        }
                     }
-                    @Override public void onError(String error) {
+
+                    @Override
+                    public void onError(String error) {
                         Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
                     }
                 });

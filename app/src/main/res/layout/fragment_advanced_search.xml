@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?android:attr/colorBackground"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Advanced Search"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Title search -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Title" />
+        <EditText
+            android:id="@+id/etSearchTitle"
+            style="@style/SearchInput"
+            android:hint="Search by title..." />
+
+        <!-- Author search -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Author" />
+        <EditText
+            android:id="@+id/etSearchAuthor"
+            style="@style/SearchInput"
+            android:hint="Search by author..." />
+
+        <!-- Fandom dropdown -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Fandom" />
+        <Spinner
+            android:id="@+id/spinnerFandom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/spinner_background" />
+
+        <!-- Rating dropdown -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Rating" />
+        <Spinner
+            android:id="@+id/spinnerRating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/rating_options_search" />
+
+        <!-- Warnings checkboxes -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Archive Warnings" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <CheckBox android:id="@+id/cbWarnViolence" android:text="Graphic Violence" />
+            <CheckBox android:id="@+id/cbWarnDeath" android:text="Major Character Death" />
+            <CheckBox android:id="@+id/cbWarnUnderage" android:text="Underage" />
+            <CheckBox android:id="@+id/cbWarnNonCon" android:text="Non-Con" />
+        </LinearLayout>
+
+        <!-- Language dropdown -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Language" />
+        <Spinner
+            android:id="@+id/spinnerLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/language_options_search" />
+
+        <!-- Character search -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Character" />
+        <EditText
+            android:id="@+id/etSearchCharacter"
+            style="@style/SearchInput"
+            android:hint="e.g. Harry Potter" />
+
+        <!-- Word count range -->
+        <TextView
+            style="@style/SearchLabel"
+            android:text="Word Count" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <EditText
+                android:id="@+id/etMinWords"
+                style="@style/SearchInput"
+                android:hint="Min words"
+                android:inputType="number"
+                android:layout_weight="1" />
+            <EditText
+                android:id="@+id/etMaxWords"
+                style="@style/SearchInput"
+                android:hint="Max words"
+                android:inputType="number"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Search"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/ao3_title"
+            android:layout_marginTop="16dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearchResults"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+</ScrollView>

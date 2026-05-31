@@ -29,16 +29,35 @@
             android:textStyle="bold"
             android:visibility="gone" />
 
-        <!-- Notes above display -->
-        <TextView
-            android:id="@+id/tvNotesAbove"
-            android:layout_width="wrap_content"
+        <!-- Notes Above (read mode) -->
+        <LinearLayout
+            android:id="@+id/notesAboveContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginTop="8dp" />
+            android:background="@drawable/note_box_bg"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp"
+            android:visibility="gone">
 
-        <!-- Notes above edit -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Author note:"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvNotesAbove"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:lineSpacingMultiplier="1.2" />
+        </LinearLayout>
+
+        <!-- Notes Above (edit mode) -->
         <EditText
             android:id="@+id/etNotesAbove"
             android:layout_width="match_parent"
@@ -46,7 +65,9 @@
             android:inputType="textMultiLine"
             android:minLines="2"
             android:gravity="top"
-            android:textSize="14sp"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
             android:visibility="gone" />
 
         <!-- Chapter content display -->
@@ -70,16 +91,34 @@
             android:textSize="16sp"
             android:visibility="gone" />
 
-        <!-- Notes below display -->
-        <TextView
-            android:id="@+id/tvNotesBelow"
-            android:layout_width="wrap_content"
+        <!-- Notes Below (read mode) -->
+        <LinearLayout
+            android:id="@+id/notesBelowContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginTop="8dp" />
+            android:background="@drawable/note_box_bg"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <!-- Notes below edit -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Author's note:"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvNotesBelow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:lineSpacingMultiplier="1.2" />
+        </LinearLayout>
+
+        <!-- Notes Below (edit mode) -->
         <EditText
             android:id="@+id/etNotesBelow"
             android:layout_width="match_parent"
@@ -87,7 +126,9 @@
             android:inputType="textMultiLine"
             android:minLines="2"
             android:gravity="top"
-            android:textSize="14sp"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_border"
             android:visibility="gone" />
 
         <!-- Comments section -->
@@ -108,7 +149,17 @@
             android:nestedScrollingEnabled="false"
             android:layout_marginBottom="16dp" />
 
-        <!-- Post comment area (only if logged in) -->
+        <TextView
+            android:id="@+id/tvCommentsDisabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Comments are disabled for this work."
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:visibility="gone"
+            android:layout_marginTop="8dp" />
+
+        <!-- Post comment area (only visible when logged in) -->
         <LinearLayout
             android:id="@+id/postCommentArea"
             android:layout_width="match_parent"

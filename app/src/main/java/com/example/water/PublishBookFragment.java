@@ -69,11 +69,15 @@ public class PublishBookFragment extends Fragment {
     private List<String> selectedCharacters = new ArrayList<>();
     private List<String> selectedFreeforms = new ArrayList<>();
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_publish_book, container, false);
+
+        sessionManager = new SessionManager(requireContext());
+        authHelper = new SupabaseAuthHelper();
 
         // Preface
         etTitle       = view.findViewById(R.id.etTitle);

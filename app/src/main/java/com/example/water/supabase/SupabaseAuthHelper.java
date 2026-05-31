@@ -7,6 +7,7 @@ import android.util.Log;
 import com.example.water.Book;
 import com.example.water.Chapter;
 import com.example.water.Comment;
+import com.example.water.FandomStat;
 import com.example.water.FriendRequest;
 import com.example.water.Message;
 import com.example.water.Notification;
@@ -1392,22 +1393,40 @@ public class SupabaseAuthHelper {
 
 
 
-    public void advancedSearch(String accessToken, String textQuery,
-                               String fandom, List<String> warnings,
-                               String rating, String language,
+    public void advancedSearch(String accessToken,
+                               String titleQuery,
+                               String authorQuery,
+                               String fandom,
+                               List<String> warnings,
+                               String rating,
+                               List<String> categories,
+                               String language,
+                               String charactersQuery,
+                               String relationshipsQuery,
+                               String freeformsQuery,
                                int minWords, int maxWords,
                                BooksCallback callback) {
         StringBuilder urlBuilder = new StringBuilder(SUPABASE_URL + "/rest/v1/books_with_stats?select=*");
         List<String> filters = new ArrayList<>();
 
-        // Title / author text search
-        if (textQuery != null && !textQuery.isEmpty()) {
-            filters.add("or(title.ilike.*" + textQuery + "*,author_username.ilike.*" + textQuery + "*)");
+        // Title search
+        if (titleQuery != null && !titleQuery.isEmpty()) {
+            filters.add("title.ilike.*" + titleQuery + "*");
         }
 
-        // Fandom (exact match inside tags array)
+        // Author search (exact or pattern)
+        if (authorQuery != null && !authorQuery.isEmpty()) {
+            filters.add("author_username.ilike.*" + authorQuery + "*");
+        }
+
+        // Fandom (exact match in tags)
         if (fandom != null && !fandom.isEmpty() && !fandom.equals("All")) {
             filters.add("tags.cs.{Fandom:" + fandom + "}");
+        }
+
+        // Rating
+        if (rating != null && !rating.isEmpty() && !rating.equals("All")) {
+            filters.add("tags.cs.{Rating:" + rating + "}");
         }
 
         // Warnings (each selected)
@@ -1417,14 +1436,31 @@ public class SupabaseAuthHelper {
             }
         }
 
-        // Rating
-        if (rating != null && !rating.isEmpty() && !rating.equals("All")) {
-            filters.add("tags.cs.{Rating:" + rating + "}");
+        // Categories
+        if (categories != null) {
+            for (String cat : categories) {
+                filters.add("tags.cs.{Category:" + cat + "}");
+            }
         }
 
         // Language
         if (language != null && !language.isEmpty() && !language.equals("All")) {
             filters.add("tags.cs.{Language:" + language + "}");
+        }
+
+        // Characters (pattern match inside Character: prefix)
+        if (charactersQuery != null && !charactersQuery.isEmpty()) {
+            filters.add("tags.cs.{Character:" + charactersQuery + "*}");
+        }
+
+        // Relationships (pattern match inside Relationship: prefix)
+        if (relationshipsQuery != null && !relationshipsQuery.isEmpty()) {
+            filters.add("tags.cs.{Relationship:" + relationshipsQuery + "*}");
+        }
+
+        // Freeforms (additional tags) – search as plain text inside the array
+        if (freeformsQuery != null && !freeformsQuery.isEmpty()) {
+            filters.add("tags.cs.{" + freeformsQuery + "}");
         }
 
         // Word count range
@@ -1462,6 +1498,10 @@ public class SupabaseAuthHelper {
             }
         });
     }
+
+
+
+
 
 
 
@@ -1762,6 +1802,74 @@ public class SupabaseAuthHelper {
     public interface IdListCallback {
         void onSuccess(List<String> ids);
         void onError(String error);
+    }
+
+
+    public interface FandomStatsCallback {
+        void onSuccess(List<FandomStat> stats);
+        void onError(String error);
+    }
+
+    public void fetchFandomStats(String accessToken, boolean showAll, FandomStatsCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/fandom_stats_all?select=*&order=book_count.desc";
+        if (!showAll) {
+            url += "&book_count=gt.0";
+        }
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    FandomStat[] arr = new Gson().fromJson(json, FandomStat[].class);
+                    List<FandomStat> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch fandom stats"));
+                }
+            }
+        });
+    }
+
+
+
+
+    public void resetPasswordForEmail(String email, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("email", email);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/auth/v1/recover")
+                .header("apikey", ANON_KEY)
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    String errorBody = response.body() != null ? response.body().string() : "";
+                    notifyError(callback, "Reset failed: " + errorBody);
+                }
+            }
+        });
     }
 
 }

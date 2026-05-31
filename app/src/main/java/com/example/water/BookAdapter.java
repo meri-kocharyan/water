@@ -1,5 +1,6 @@
 package com.example.water;
 
+import android.graphics.Typeface;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -104,7 +105,13 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
         }
 
         // --- Row 1: "Title by Author" — title in blue, "by Author" in black ---
-        String author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
+        String author;
+        if (book.isIs_anonymous()) {
+            author = "Anonymous";
+        } else {
+            author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
+        }
+
         String titlePart = book.getTitle();
         String authorPart = " by " + author;
         SpannableString titleSpan = new SpannableString(titlePart + authorPart);
@@ -118,6 +125,14 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
                 titlePart.length(), titlePart.length() + authorPart.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         );
+
+        // If anonymous, italicise the author part
+        if (book.isIs_anonymous()) {
+            holder.tvTitle.setTypeface(Typeface.DEFAULT, Typeface.ITALIC);
+        } else {
+            holder.tvTitle.setTypeface(Typeface.DEFAULT);
+        }
+
         holder.tvTitle.setText(titleSpan);
         holder.tvFandom.setText(fandom);
 

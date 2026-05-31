@@ -1,33 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:fillViewport="true"
+    android:background="?android:attr/colorBackground"
+    android:scrollbars="none"
+    android:padding="0dp">
 
-    <EditText
-        android:id="@+id/etSearchText"
+    <!-- Header + content wrapper -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search by title or author..."
-        android:inputType="text"
-        android:padding="12dp"
-        android:background="@android:drawable/edit_text"
-        android:textSize="16sp" />
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/btnSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Search"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@color/ao3_title"
-        android:textColor="@android:color/white" />
+        <!-- Header title (full width, light blue background) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Search"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:background="@color/light_blue"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSearchResults"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp" />
-</LinearLayout>
+        <!-- Divider line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/ao3_rule" />
+
+        <!-- Scrollable content with side padding -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Title -->
+            <TextView style="@style/FieldLabel" android:text="Title" />
+            <EditText
+                android:id="@+id/etSearchTitle"
+                style="@style/EditText"
+                android:hint="Search by title" />
+
+            <!-- Author -->
+            <TextView style="@style/FieldLabel" android:text="Author" />
+            <EditText
+                android:id="@+id/etSearchAuthor"
+                style="@style/EditText"
+                android:hint="Search by author" />
+
+            <!-- Fandom -->
+            <TextView style="@style/FieldLabel" android:text="Fandom" />
+            <Spinner
+                android:id="@+id/spinnerSearchFandom"
+                style="@style/Spinner"
+                android:entries="@array/fandom_search_array" />
+
+            <!-- Rating -->
+            <TextView style="@style/FieldLabel" android:text="Rating" />
+            <Spinner
+                android:id="@+id/spinnerSearchRating"
+                style="@style/Spinner"
+                android:entries="@array/search_rating_options" />
+
+            <!-- Warnings -->
+            <TextView style="@style/FieldLabel" android:text="Warnings" />
+            <CheckBox android:id="@+id/cbWarnViolence"
+                style="@style/CheckBox"
+                android:text="Graphic Violence" />
+            <CheckBox android:id="@+id/cbWarnDeath"
+                style="@style/CheckBox"
+                android:text="Major Character Death" />
+            <CheckBox android:id="@+id/cbWarnUnderage"
+                style="@style/CheckBox"
+                android:text="Underage" />
+            <CheckBox android:id="@+id/cbWarnNonCon"
+                style="@style/CheckBox"
+                android:text="Non-Con" />
+
+            <!-- Categories -->
+            <TextView style="@style/FieldLabel" android:text="Categories" />
+            <CheckBox android:id="@+id/cbCatFF"
+                style="@style/CheckBox" android:text="F/F" />
+            <CheckBox android:id="@+id/cbCatFM"
+                style="@style/CheckBox" android:text="F/M" />
+            <CheckBox android:id="@+id/cbCatGen"
+                style="@style/CheckBox" android:text="Gen" />
+            <CheckBox android:id="@+id/cbCatMM"
+                style="@style/CheckBox" android:text="M/M" />
+            <CheckBox android:id="@+id/cbCatMulti"
+                style="@style/CheckBox" android:text="Multi" />
+            <CheckBox android:id="@+id/cbCatOther"
+                style="@style/CheckBox" android:text="Other" />
+
+            <!-- Language -->
+            <TextView style="@style/FieldLabel" android:text="Language" />
+            <Spinner
+                android:id="@+id/spinnerSearchLanguage"
+                style="@style/Spinner"
+                android:entries="@array/search_language_options" />
+
+            <!-- Characters -->
+            <TextView style="@style/FieldLabel" android:text="Characters" />
+            <EditText
+                android:id="@+id/etSearchCharacters"
+                style="@style/EditText"
+                android:hint="e.g. Harry Potter" />
+
+            <!-- Relationships -->
+            <TextView style="@style/FieldLabel" android:text="Relationships" />
+            <EditText
+                android:id="@+id/etSearchRelationships"
+                style="@style/EditText"
+                android:hint="e.g. Harry/Draco" />
+
+            <!-- Additional Tags -->
+            <TextView style="@style/FieldLabel" android:text="Additional Tags" />
+            <EditText
+                android:id="@+id/etSearchFreeforms"
+                style="@style/EditText"
+                android:hint="e.g. Angst, Fluff" />
+
+            <!-- Word count -->
+            <TextView style="@style/FieldLabel" android:text="Word Count" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/etMinWords"
+                    style="@style/EditText"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:hint="Min" />
+                <EditText
+                    android:id="@+id/etMaxWords"
+                    style="@style/EditText"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:hint="Max" />
+            </LinearLayout>
+
+            <!-- Search button -->
+            <Button
+                android:id="@+id/btnSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Search"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/ao3_title"
+                android:layout_marginTop="16dp" />
+
+            <!-- Results -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

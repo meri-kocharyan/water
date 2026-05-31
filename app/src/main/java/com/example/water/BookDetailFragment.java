@@ -1,9 +1,11 @@
 package com.example.water;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,13 +90,10 @@ public class BookDetailFragment extends Fragment {
         btnBookmark = view.findViewById(R.id.btnBookmark);
         btnSubscribe = view.findViewById(R.id.btnSubscribe);
 
-
-
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
 
-
-        // Check bookmark state
+        // Check bookmark state on load
         checkBookmarkState();
 
         rvChapters.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -145,26 +144,7 @@ public class BookDetailFragment extends Fragment {
             chaptersExpanded = !chaptersExpanded;
         });
 
-
-        btnBookmark.setOnClickListener(v -> {
-            String token = sessionManager.getAccessToken();
-            String userId = sessionManager.getUserId();
-            if (token == null || userId == null) return;
-            authHelper.addBookmark(token, userId, bookId, new SupabaseAuthHelper.AuthCallback() {
-                @Override
-                public void onSuccess(String accessToken, String refreshToken, String email, String userId1) {
-                    Toast.makeText(getContext(), "Bookmark added", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String error) {
-                    Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-
-
-
+        // Bookmark toggle
         btnBookmark.setOnClickListener(v -> {
             String token = sessionManager.getAccessToken();
             String userId = sessionManager.getUserId();
@@ -198,6 +178,16 @@ public class BookDetailFragment extends Fragment {
                 });
             }
         });
+
+        // Subscribe – placeholder for future
+        btnSubscribe.setOnClickListener(v ->
+                Toast.makeText(getContext(), "Subscribed!", Toast.LENGTH_SHORT).show()
+        );
+
+        if (!sessionManager.isLoggedIn()) {
+            btnBookmark.setVisibility(View.GONE);
+            btnSubscribe.setVisibility(View.GONE);
+        }
 
         loadBookDetails();
         loadChapters();
@@ -258,8 +248,15 @@ public class BookDetailFragment extends Fragment {
             }
         }
 
-        // Title (blue) with author appended in black
-        String author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
+        // --- Title + Author with anonymous support ---
+        String author;
+        boolean isAnonymous = book.isIs_anonymous();
+        if (isAnonymous) {
+            author = "Anonymous";
+        } else {
+            author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
+        }
+
         String titlePart = book.getTitle();
         String authorPart = " by " + author;
         SpannableString span = new SpannableString(titlePart + authorPart);
@@ -267,6 +264,12 @@ public class BookDetailFragment extends Fragment {
                 0, titlePart.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         span.setSpan(new ForegroundColorSpan(0xFF000000),
                 titlePart.length(), span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // Italicise the author part if anonymous
+        if (isAnonymous) {
+            span.setSpan(new StyleSpan(Typeface.ITALIC),
+                    titlePart.length(), span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
         tvTitle.setText(span);
 
         // Date (right-aligned, same line)
@@ -359,7 +362,6 @@ public class BookDetailFragment extends Fragment {
         }
         return raw;
     }
-
 
     private void checkBookmarkState() {
         String token = sessionManager.getAccessToken();

@@ -1,9 +1,11 @@
 package com.example.water;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -166,8 +168,15 @@ public class BookDetailsChildFragment extends Fragment {
             }
         }
 
-        // Title + author
-        String author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
+        // --- Title + Author with anonymous support ---
+        String author;
+        boolean isAnonymous = book.isIs_anonymous();
+        if (isAnonymous) {
+            author = "Anonymous";
+        } else {
+            author = book.getAuthor_username() != null ? book.getAuthor_username() : "Unknown";
+        }
+
         String titlePart = book.getTitle();
         String authorPart = " by " + author;
         SpannableString span = new SpannableString(titlePart + authorPart);
@@ -175,6 +184,12 @@ public class BookDetailsChildFragment extends Fragment {
                 0, titlePart.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         span.setSpan(new ForegroundColorSpan(0xFF000000),
                 titlePart.length(), span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // Italicise author part if anonymous
+        if (isAnonymous) {
+            span.setSpan(new StyleSpan(Typeface.ITALIC),
+                    titlePart.length(), span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
         tvTitle.setText(span);
 
         // Date

@@ -25,7 +25,6 @@ import java.util.List;
 public class ChapterViewFragment extends Fragment {
 
     private static final String ARG_CHAPTER_ID = "chapter_id";
-
     private String chapterId;
 
     private TextView tvTitle, tvNotesAbove, tvContent, tvNotesBelow;
@@ -35,15 +34,16 @@ public class ChapterViewFragment extends Fragment {
     private SessionManager sessionManager;
     private Chapter currentChapter;
     private boolean isAuthor = false;
-
-
-
+    private boolean commentsDisabled = false;   // <-- NEW
 
     private RecyclerView rvComments;
     private EditText etCommentInput;
     private ImageButton btnSendComment;
     private LinearLayout postCommentArea;
     private CommentAdapter commentAdapter;
+    private TextView tvCommentsDisabled;   // <-- NEW
+
+    private LinearLayout notesAboveContainer, notesBelowContainer;
 
     public static ChapterViewFragment newInstance(String chapterId) {
         ChapterViewFragment frag = new ChapterViewFragment();
@@ -93,34 +93,35 @@ public class ChapterViewFragment extends Fragment {
         btnEdit.setOnClickListener(v -> enableEditing(true));
         btnSave.setOnClickListener(v -> saveChanges());
         btnPrev.setOnClickListener(v -> navigateChapter(false));
+        btnNext.setOnClickListener(v -> navigateChapter(true));
         btnBackToBook.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().popBackStack("book_detail", 0);
         });
-        btnNext.setOnClickListener(v -> navigateChapter(true));
 
-        fetchChapterAndCheckOwnership();
-
-
-
-
+        // Comments section
         rvComments = view.findViewById(R.id.rvComments);
         etCommentInput = view.findViewById(R.id.etCommentInput);
         btnSendComment = view.findViewById(R.id.btnSendComment);
         postCommentArea = view.findViewById(R.id.postCommentArea);
+        tvCommentsDisabled = view.findViewById(R.id.tvCommentsDisabled);   // <-- NEW
+
+        notesAboveContainer = view.findViewById(R.id.notesAboveContainer);
+        notesBelowContainer = view.findViewById(R.id.notesBelowContainer);
 
         rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
         commentAdapter = new CommentAdapter(new ArrayList<>());
         rvComments.setAdapter(commentAdapter);
 
-// Show post area only if logged in
-        if (sessionManager.isLoggedIn()) {
-            postCommentArea.setVisibility(View.VISIBLE);
-        } else {
-            postCommentArea.setVisibility(View.GONE);
-        }
+        // Initially hide the post area; we'll show it after we know if comments are allowed
+        postCommentArea.setVisibility(View.GONE);
 
         btnSendComment.setOnClickListener(v -> postComment());
 
+        // Load comments immediately
+        loadComments();
+
+        // Fetch chapter data and check ownership/comments flag
+        fetchChapterAndCheckOwnership();
 
         return view;
     }
@@ -132,19 +133,28 @@ public class ChapterViewFragment extends Fragment {
             public void onSuccess(Chapter chapter) {
                 currentChapter = chapter;
                 populateDisplay(chapter);
-                // Now check if current user is author of the book
+
+                // Check book ownership and comment settings
                 authHelper.fetchBookById(token, chapter.getBook_id(), new SupabaseAuthHelper.BookCallback() {
                     @Override
                     public void onSuccess(Book book) {
                         String myUserId = sessionManager.getUserId();
                         isAuthor = (myUserId != null && myUserId.equals(book.getAuthor_id()));
+
                         // Show edit buttons if author
-                        if (isAuthor) {
-                            btnEdit.setVisibility(View.VISIBLE);
+                        btnEdit.setVisibility(isAuthor ? View.VISIBLE : View.GONE);
+
+                        // Handle comments disabled flag
+                        commentsDisabled = book.isComments_disabled();
+                        if (commentsDisabled) {
+                            tvCommentsDisabled.setVisibility(View.VISIBLE);
+                            postCommentArea.setVisibility(View.GONE);
                         } else {
-                            btnEdit.setVisibility(View.GONE);
+                            tvCommentsDisabled.setVisibility(View.GONE);
+                            postCommentArea.setVisibility(
+                                    sessionManager.isLoggedIn() ? View.VISIBLE : View.GONE);
                         }
-                        // Update navigation buttons visibility later if needed
+
                         updateNavigationButtons(book.getChapter_count());
                     }
 
@@ -164,50 +174,80 @@ public class ChapterViewFragment extends Fragment {
 
     private void populateDisplay(Chapter chapter) {
         tvTitle.setText(chapter.getTitle());
-        tvNotesAbove.setText(chapter.getNotes_above());
         tvContent.setText(chapter.getContent());
-        tvNotesBelow.setText(chapter.getNotes_below());
+
+        // Notes above
+        String above = chapter.getNotes_above();
+        if (above != null && !above.isEmpty()) {
+            tvNotesAbove.setText(above);
+            notesAboveContainer.setVisibility(View.VISIBLE);
+        } else {
+            notesAboveContainer.setVisibility(View.GONE);
+        }
+
+        // Notes below
+        String below = chapter.getNotes_below();
+        if (below != null && !below.isEmpty()) {
+            tvNotesBelow.setText(below);
+            notesBelowContainer.setVisibility(View.VISIBLE);
+        } else {
+            notesBelowContainer.setVisibility(View.GONE);
+        }
     }
 
     private void enableEditing(boolean enable) {
-        if (!isAuthor) return; // double‑check
-        if (enable) {
-            tvTitle.setVisibility(View.GONE);
-            tvNotesAbove.setVisibility(View.GONE);
-            tvContent.setVisibility(View.GONE);
-            tvNotesBelow.setVisibility(View.GONE);
+        if (!isAuthor) return;
 
+        if (enable) {
+            // Hide read-mode views
+            tvTitle.setVisibility(View.GONE);
+            tvContent.setVisibility(View.GONE);
+
+            // Hide notes containers (read mode)
+            notesAboveContainer.setVisibility(View.GONE);
+            notesBelowContainer.setVisibility(View.GONE);
+
+            // Show edit-mode views
             etTitle.setVisibility(View.VISIBLE);
-            etNotesAbove.setVisibility(View.VISIBLE);
             etContent.setVisibility(View.VISIBLE);
+
+            // Show notes edit fields
+            etNotesAbove.setVisibility(View.VISIBLE);
             etNotesBelow.setVisibility(View.VISIBLE);
 
+            // Pre‑fill edit fields
             etTitle.setText(currentChapter.getTitle());
-            etNotesAbove.setText(currentChapter.getNotes_above());
             etContent.setText(currentChapter.getContent());
+            etNotesAbove.setText(currentChapter.getNotes_above());
             etNotesBelow.setText(currentChapter.getNotes_below());
 
             btnEdit.setVisibility(View.GONE);
             btnSave.setVisibility(View.VISIBLE);
         } else {
+            // Show read-mode views
             tvTitle.setVisibility(View.VISIBLE);
-            tvNotesAbove.setVisibility(View.VISIBLE);
             tvContent.setVisibility(View.VISIBLE);
-            tvNotesBelow.setVisibility(View.VISIBLE);
 
+            // Show notes containers (read mode) only if they have content
+            String above = currentChapter.getNotes_above();
+            notesAboveContainer.setVisibility(
+                    (above != null && !above.isEmpty()) ? View.VISIBLE : View.GONE);
+            String below = currentChapter.getNotes_below();
+            notesBelowContainer.setVisibility(
+                    (below != null && !below.isEmpty()) ? View.VISIBLE : View.GONE);
+
+            // Hide edit-mode views
             etTitle.setVisibility(View.GONE);
-            etNotesAbove.setVisibility(View.GONE);
             etContent.setVisibility(View.GONE);
+            etNotesAbove.setVisibility(View.GONE);
             etNotesBelow.setVisibility(View.GONE);
 
-            btnEdit.setVisibility(isAuthor ? View.VISIBLE : View.GONE);
+            btnEdit.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.GONE);
         }
     }
 
     private void saveChanges() {
-        // same as before, but after save, refresh chapter and switch back
-        // ... (previous saveChanges code) ...
         String newTitle = etTitle.getText().toString().trim();
         String newContent = etContent.getText().toString().trim();
         String newNotesAbove = etNotesAbove.getText().toString().trim();
@@ -223,7 +263,6 @@ public class ChapterViewFragment extends Fragment {
                 newNotesAbove, newNotesBelow, new SupabaseAuthHelper.AuthCallback() {
                     @Override
                     public void onSuccess(String a, String b, String c, String d) {
-                        // Update local chapter object (you may need setters or create new)
                         currentChapter.setTitle(newTitle);
                         currentChapter.setContent(newContent);
                         currentChapter.setNotes_above(newNotesAbove);
@@ -258,7 +297,6 @@ public class ChapterViewFragment extends Fragment {
                     }
                 }
                 if (target != null) {
-                    // Replace current fragment with the new chapter
                     ChapterViewFragment newFrag = ChapterViewFragment.newInstance(target.getId());
                     requireActivity().getSupportFragmentManager()
                             .beginTransaction()
@@ -284,9 +322,6 @@ public class ChapterViewFragment extends Fragment {
         btnNext.setVisibility(num < totalChapters ? View.VISIBLE : View.INVISIBLE);
     }
 
-
-
-
     private void loadComments() {
         String token = sessionManager.getAccessToken();
         authHelper.fetchComments(token, chapterId, new SupabaseAuthHelper.CommentsCallback() {
@@ -303,16 +338,20 @@ public class ChapterViewFragment extends Fragment {
     }
 
     private void postComment() {
+        if (commentsDisabled) return;   // extra safety
+
         String text = etCommentInput.getText().toString().trim();
         if (text.isEmpty()) return;
         String token = sessionManager.getAccessToken();
         String userId = sessionManager.getUserId();
         if (token == null || userId == null) return;
+
         authHelper.postComment(token, chapterId, userId, text, new SupabaseAuthHelper.AuthCallback() {
             @Override
             public void onSuccess(String a, String b, String c, String d) {
                 etCommentInput.setText("");
                 loadComments();
+                notifyAuthorIfNeeded(chapterId);
             }
 
             @Override
@@ -322,15 +361,11 @@ public class ChapterViewFragment extends Fragment {
         });
     }
 
-
-
-
     private void notifyAuthorIfNeeded(String chapterId) {
         String token = sessionManager.getAccessToken();
         String myUserId = sessionManager.getUserId();
         if (token == null || myUserId == null) return;
 
-        // Fetch the book via chapter
         authHelper.fetchChapterById(token, chapterId, new SupabaseAuthHelper.ChapterCallback() {
             @Override
             public void onSuccess(Chapter chapter) {
@@ -339,29 +374,21 @@ public class ChapterViewFragment extends Fragment {
                     public void onSuccess(Book book) {
                         String authorId = book.getAuthor_id();
                         if (authorId != null && !authorId.equals(myUserId)) {
-                            // Create notification for author
                             String message = "New comment on \"" + book.getTitle() + "\"";
                             authHelper.createNotification(token, authorId, "comment",
                                     message, chapterId, book.getId(),
                                     new SupabaseAuthHelper.AuthCallback() {
                                         @Override
-                                        public void onSuccess(String a, String b, String c, String d) {
-                                            // Notification created
-                                        }
-
+                                        public void onSuccess(String a, String b, String c, String d) {}
                                         @Override
-                                        public void onError(String error) {
-                                            // ignore
-                                        }
+                                        public void onError(String error) {}
                                     });
                         }
                     }
-
                     @Override
                     public void onError(String error) {}
                 });
             }
-
             @Override
             public void onError(String error) {}
         });
