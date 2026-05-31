@@ -1570,4 +1570,43 @@ public class SupabaseAuthHelper {
         });
     }
 
+
+
+    public interface TagsCallback {
+        void onSuccess(List<String> tagNames);
+        void onError(String error);
+    }
+
+
+
+    public void fetchFandoms(String accessToken, TagsCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/fandoms?select=name&order=name.asc";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
+                    List<String> names = new ArrayList<>();
+                    for (int i = 0; i < arr.size(); i++) {
+                        names.add(arr.get(i).getAsJsonObject().get("name").getAsString());
+                    }
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(names));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch fandoms"));
+                }
+            }
+        });
+    }
+
 }

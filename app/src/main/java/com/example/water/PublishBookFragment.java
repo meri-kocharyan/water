@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.water.supabase.SupabaseAuthHelper;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
@@ -36,6 +37,8 @@ public class PublishBookFragment extends Fragment {
     private AutoCompleteTextView actvFandoms;
     private ChipGroup chipGroupFandoms;
 
+    private SupabaseAuthHelper authHelper;
+    private SessionManager sessionManager;
     // Warnings
     private CheckBox cbWarnViolence, cbWarnDeath, cbWarnUnderage,
             cbWarnNonCon, cbWarnNoWarnings, cbWarnNone;
@@ -255,10 +258,27 @@ public class PublishBookFragment extends Fragment {
     }
 
     private void setupFandomAutocomplete() {
-        String[] fandomArray = getResources().getStringArray(R.array.fandom_suggestions);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_dropdown_item_1line, fandomArray);
-        actvFandoms.setAdapter(adapter);
+        // Fetch fandoms from database
+        String token = sessionManager.getAccessToken();
+        authHelper.fetchFandoms(token, new SupabaseAuthHelper.TagsCallback() {
+            @Override
+            public void onSuccess(List<String> tagNames) {
+                if (getContext() == null) return;
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                        android.R.layout.simple_dropdown_item_1line, tagNames);
+                actvFandoms.setAdapter(adapter);
+            }
+
+            @Override
+            public void onError(String error) {
+                // Fallback to static array if database fails
+                if (getContext() == null) return;
+                String[] fallback = getResources().getStringArray(R.array.fandom_suggestions);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                        android.R.layout.simple_dropdown_item_1line, fallback);
+                actvFandoms.setAdapter(adapter);
+            }
+        });
 
         // When user clicks a suggestion from the dropdown
         actvFandoms.setOnItemClickListener((parent, v, position, id) -> {

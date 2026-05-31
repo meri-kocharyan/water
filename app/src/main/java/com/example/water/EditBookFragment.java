@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.water.supabase.SupabaseAuthHelper;
+import com.google.android.material.chip.ChipGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -270,10 +271,27 @@ public class EditBookFragment extends Fragment {
     }
 
     private void setupFandomAutocomplete() {
-        String[] fandomArray = getResources().getStringArray(R.array.fandom_suggestions);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_dropdown_item_1line, fandomArray);
-        actvFandoms.setAdapter(adapter);
+        String token = sessionManager.getAccessToken();
+
+        authHelper.fetchFandoms(token, new SupabaseAuthHelper.TagsCallback() {
+            @Override
+            public void onSuccess(List<String> fandomNames) {
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                        android.R.layout.simple_dropdown_item_1line, fandomNames);
+                actvFandoms.setAdapter(adapter);
+            }
+
+            @Override
+            public void onError(String error) {
+                // fallback to local array if database fails
+                String[] fallback = getResources().getStringArray(R.array.fandom_suggestions);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                        android.R.layout.simple_dropdown_item_1line, fallback);
+                actvFandoms.setAdapter(adapter);
+            }
+        });
+
+        // When user clicks a suggestion from the dropdown
         actvFandoms.setOnItemClickListener((parent, v, position, id) -> {
             String fandom = (String) parent.getItemAtPosition(position);
             if (!selectedFandoms.contains(fandom)) {
@@ -282,8 +300,10 @@ public class EditBookFragment extends Fragment {
                 actvFandoms.setText("");
             }
         });
+
+        // When user types a custom fandom and presses Enter
         actvFandoms.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == 0) {
+            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT || actionId == 0) {
                 String fandom = actvFandoms.getText().toString().trim();
                 if (!fandom.isEmpty()) {
                     selectedFandoms.add(fandom);

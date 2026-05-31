@@ -43,6 +43,8 @@ public class BookDetailFragment extends Fragment {
 
     private boolean chaptersExpanded = true;
 
+    private TextView tvSummary;
+
     public static BookDetailFragment newInstance(String bookId) {
         BookDetailFragment frag = new BookDetailFragment();
         Bundle args = new Bundle();
@@ -78,6 +80,7 @@ public class BookDetailFragment extends Fragment {
         btnStartReading = view.findViewById(R.id.btnStartReading);
         btnToggleChapters = view.findViewById(R.id.btnToggleChapters);
         rvChapters      = view.findViewById(R.id.rvChapters);
+        tvSummary       = view.findViewById(R.id.tvDetailSummary);
 
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
@@ -245,6 +248,15 @@ public class BookDetailFragment extends Fragment {
         stats.append("Words: ").append(book.getWord_count());
         stats.append("  Chapters: ").append(book.getChapter_count());
         tvStats.setText(stats.toString().trim());
+
+        // Summary
+        String summary = book.getDescription();
+        if (summary != null && !summary.isEmpty()) {
+            tvSummary.setText(summary);
+            tvSummary.setVisibility(View.VISIBLE);
+        } else {
+            tvSummary.setVisibility(View.GONE);
+        }
     }
 
     private void loadChapters() {
