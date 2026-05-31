@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class FandomAdapter extends RecyclerView.Adapter<FandomAdapter.ViewHolder> {
+
     private List<String> fandoms;
     private OnItemClickListener listener;
 
@@ -23,23 +24,34 @@ public class FandomAdapter extends RecyclerView.Adapter<FandomAdapter.ViewHolder
         this.listener = listener;
     }
 
+    public void setData(List<String> newFandoms) {
+        this.fandoms = newFandoms;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(android.R.layout.simple_list_item_1, parent, false);
         return new ViewHolder(v);
     }
 
-    @Override public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String fandom = fandoms.get(position);
         holder.textView.setText(fandom);
         holder.itemView.setOnClickListener(v -> listener.onItemClick(fandom));
     }
 
-    @Override public int getItemCount() { return fandoms.size(); }
+    @Override
+    public int getItemCount() {
+        return fandoms != null ? fandoms.size() : 0;
+    }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textView;
+
         ViewHolder(View itemView) {
             super(itemView);
             textView = itemView.findViewById(android.R.id.text1);

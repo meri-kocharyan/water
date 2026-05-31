@@ -30,8 +30,7 @@ public class ChapterViewFragment extends Fragment {
 
     private TextView tvTitle, tvNotesAbove, tvContent, tvNotesBelow;
     private EditText etTitle, etNotesAbove, etContent, etNotesBelow;
-    private Button btnEdit, btnSave, btnPrev, btnNext;
-
+    private Button btnEdit, btnSave, btnPrev, btnNext, btnBackToBook;
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
     private Chapter currentChapter;
@@ -82,6 +81,7 @@ public class ChapterViewFragment extends Fragment {
         btnSave = view.findViewById(R.id.btnSave);
         btnPrev = view.findViewById(R.id.btnPrev);
         btnNext = view.findViewById(R.id.btnNext);
+        btnBackToBook = view.findViewById(R.id.btnBackToBook);
 
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
@@ -93,6 +93,9 @@ public class ChapterViewFragment extends Fragment {
         btnEdit.setOnClickListener(v -> enableEditing(true));
         btnSave.setOnClickListener(v -> saveChanges());
         btnPrev.setOnClickListener(v -> navigateChapter(false));
+        btnBackToBook.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().popBackStack("book_detail", 0);
+        });
         btnNext.setOnClickListener(v -> navigateChapter(true));
 
         fetchChapterAndCheckOwnership();

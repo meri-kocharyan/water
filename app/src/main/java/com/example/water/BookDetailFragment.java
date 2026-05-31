@@ -35,6 +35,9 @@ public class BookDetailFragment extends Fragment {
     private TextView tvWarnings, tvRating, tvCategories, tvRelationships, tvCharacters, tvFreeforms;
     private TextView tvStats;
     private Button btnStartReading, btnToggleChapters;
+    private Button btnBookmark, btnSubscribe;
+    private boolean isBookmarked = false;
+
     private RecyclerView rvChapters;
     private ChapterAdapter chapterAdapter;
 
@@ -82,8 +85,17 @@ public class BookDetailFragment extends Fragment {
         rvChapters      = view.findViewById(R.id.rvChapters);
         tvSummary       = view.findViewById(R.id.tvDetailSummary);
 
+        btnBookmark = view.findViewById(R.id.btnBookmark);
+        btnSubscribe = view.findViewById(R.id.btnSubscribe);
+
+
+
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
+
+
+        // Check bookmark state
+        checkBookmarkState();
 
         rvChapters.setLayoutManager(new LinearLayoutManager(getContext()));
         chapterAdapter = new ChapterAdapter(new ArrayList<>(), chapter -> {
@@ -131,6 +143,60 @@ public class BookDetailFragment extends Fragment {
                 btnToggleChapters.setText("Hide");
             }
             chaptersExpanded = !chaptersExpanded;
+        });
+
+
+        btnBookmark.setOnClickListener(v -> {
+            String token = sessionManager.getAccessToken();
+            String userId = sessionManager.getUserId();
+            if (token == null || userId == null) return;
+            authHelper.addBookmark(token, userId, bookId, new SupabaseAuthHelper.AuthCallback() {
+                @Override
+                public void onSuccess(String accessToken, String refreshToken, String email, String userId1) {
+                    Toast.makeText(getContext(), "Bookmark added", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+
+
+        btnBookmark.setOnClickListener(v -> {
+            String token = sessionManager.getAccessToken();
+            String userId = sessionManager.getUserId();
+            if (token == null || userId == null) return;
+
+            if (isBookmarked) {
+                authHelper.removeBookmark(token, userId, bookId, new SupabaseAuthHelper.AuthCallback() {
+                    @Override
+                    public void onSuccess(String a, String b, String c, String d) {
+                        isBookmarked = false;
+                        btnBookmark.setText("Bookmark");
+                        Toast.makeText(getContext(), "Bookmark removed", Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                authHelper.addBookmark(token, userId, bookId, new SupabaseAuthHelper.AuthCallback() {
+                    @Override
+                    public void onSuccess(String a, String b, String c, String d) {
+                        isBookmarked = true;
+                        btnBookmark.setText("Bookmarked");
+                        Toast.makeText(getContext(), "Bookmarked!", Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         });
 
         loadBookDetails();
@@ -292,5 +358,23 @@ public class BookDetailFragment extends Fragment {
             } catch (ParseException ignored) {}
         }
         return raw;
+    }
+
+
+    private void checkBookmarkState() {
+        String token = sessionManager.getAccessToken();
+        String userId = sessionManager.getUserId();
+        if (token == null || userId == null) return;
+
+        authHelper.checkBookmark(token, userId, bookId, new SupabaseAuthHelper.AuthCallback() {
+            @Override public void onSuccess(String a, String b, String c, String d) {
+                isBookmarked = true;
+                btnBookmark.setText("Bookmarked");
+            }
+            @Override public void onError(String error) {
+                isBookmarked = false;
+                btnBookmark.setText("Bookmark");
+            }
+        });
     }
 }

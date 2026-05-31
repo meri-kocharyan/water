@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:background="?android:attr/colorBackground"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -150,7 +151,35 @@
             android:textSize="15sp"
             android:textStyle="bold"
             android:backgroundTint="@color/ao3_title"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="4dp" />
+
+        <!-- Bookmark & Subscribe -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/btnBookmark"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Bookmark"
+                android:textColor="@color/ao3_title"
+                android:backgroundTint="@android:color/transparent" />
+
+            <Button
+                android:id="@+id/btnSubscribe"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Subscribe"
+                android:textColor="@color/ao3_title"
+                android:backgroundTint="@android:color/transparent" />
+        </LinearLayout>
 
         <!-- Chapters header (sky light blue background) -->
         <LinearLayout
@@ -161,7 +190,7 @@
             android:background="@color/blue"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:paddingTop="0dp"
+            android:paddingTop="1dp"
             android:paddingBottom="0dp">
 
             <TextView

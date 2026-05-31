@@ -1609,4 +1609,159 @@ public class SupabaseAuthHelper {
         });
     }
 
+
+
+
+
+// ---- Bookmarks ----
+
+    public void addBookmark(String accessToken, String userId, String bookId, AuthCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("user_id", userId);
+        body.addProperty("book_id", bookId);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/bookmarks")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() || response.code() == 201) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    String err = response.body() != null ? response.body().string() : "";
+                    notifyError(callback, "Failed to add bookmark: " + err);
+                }
+            }
+        });
+    }
+
+    public void removeBookmark(String accessToken, String userId, String bookId, AuthCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/bookmarks?user_id=eq." + userId + "&book_id=eq." + bookId;
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .delete()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    notifySuccess(callback, null, null, null, null);
+                } else {
+                    notifyError(callback, "Failed to remove bookmark");
+                }
+            }
+        });
+    }
+
+    // Check if bookmarked
+    public void checkBookmark(String accessToken, String userId, String bookId, AuthCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/bookmarks?user_id=eq." + userId + "&book_id=eq." + bookId + "&select=id";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                notifyError(callback, e.getMessage());
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
+                    if (arr.size() > 0) {
+                        notifySuccess(callback, null, null, null, null); // exists
+                    } else {
+                        notifyError(callback, "not found"); // does not exist
+                    }
+                } else {
+                    notifyError(callback, "Failed to check bookmark");
+                }
+            }
+        });
+    }
+
+    // Fetch all bookmarked books (with full book data via a view)
+    public void fetchBookmarkedBooks(String accessToken, String userId, BooksCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("uid", userId);
+
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/rpc/get_bookmarked_books")
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    Book[] arr = new Gson().fromJson(json, Book[].class);
+                    List<Book> list = Arrays.asList(arr);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch bookmarked books"));
+                }
+            }
+        });
+    }
+
+    // Simpler: fetch bookmark entries, return list of book IDs
+    public void fetchBookmarkIds(String accessToken, String userId, IdListCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/bookmarks?user_id=eq." + userId + "&select=book_id&order=created_at.desc";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String json = response.body().string();
+                    JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
+                    List<String> bookIds = new ArrayList<>();
+                    for (int i = 0; i < arr.size(); i++) {
+                        bookIds.add(arr.get(i).getAsJsonObject().get("book_id").getAsString());
+                    }
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(bookIds));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Failed to fetch bookmark IDs"));
+                }
+            }
+        });
+    }
+
+    public interface IdListCallback {
+        void onSuccess(List<String> ids);
+        void onError(String error);
+    }
+
 }

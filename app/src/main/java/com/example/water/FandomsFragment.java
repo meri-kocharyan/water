@@ -1,11 +1,9 @@
 package com.example.water;
 
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,10 +14,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.water.supabase.SupabaseAuthHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FandomsFragment extends Fragment {
+
     private RecyclerView rvFandoms;
+    private FandomAdapter adapter;
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
 
@@ -34,27 +35,29 @@ public class FandomsFragment extends Fragment {
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
 
-        authHelper.fetchFandoms(sessionManager.getAccessToken(), new SupabaseAuthHelper.TagsCallback() {
-            @Override public void onSuccess(List<String> names) {
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                        android.R.layout.simple_list_item_1, names);
-                rvFandoms.setAdapter(adapter);
-            }
-            @Override public void onError(String error) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Click on a fandom → open FandomBooksFragment
-        rvFandoms.addOnItemTouchListener(new RecyclerItemClickListener(getContext(), (view1, position) -> {
-            String fandom = names.get(position);
+        // Create adapter with click listener
+        adapter = new FandomAdapter(new ArrayList<>(), fandom -> {
             FandomBooksFragment booksFrag = FandomBooksFragment.newInstance(fandom);
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragment_container, booksFrag)
                     .addToBackStack("fandom_books")
                     .commit();
-        }));
+        });
+        rvFandoms.setAdapter(adapter);
+
+        // Load fandoms from database
+        authHelper.fetchFandoms(sessionManager.getAccessToken(), new SupabaseAuthHelper.TagsCallback() {
+            @Override
+            public void onSuccess(List<String> names) {
+                adapter.setData(names);
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return view;
     }

@@ -184,6 +184,14 @@
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
+            <Button
+                android:id="@+id/btnBackToBook"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Back to Book"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:visibility="visible" />
+
             <!-- Next chapter -->
             <Button
                 android:id="@+id/btnNext"
