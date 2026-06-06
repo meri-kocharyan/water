@@ -10,7 +10,7 @@ import android.text.Spanned;
 import android.util.AttributeSet;
 import android.widget.EditText;
 
-public class PasteableEditText extends EditText {
+public class PasteableEditText extends androidx.appcompat.widget.AppCompatEditText {
 
     public PasteableEditText(Context context) {
         super(context);
