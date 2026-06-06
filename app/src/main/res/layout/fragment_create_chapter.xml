@@ -96,21 +96,17 @@
             android:textSize="18sp"
             android:layout_marginLeft="5dp"
             android:text="Content" />
-        <EditText
+        <com.example.water.PasteableEditText
             android:id="@+id/etChapterContent"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:gravity="top"
             android:textSize="16sp"
             android:padding="12dp"
             android:background="@drawable/edit_text_border"
             android:minHeight="200dp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginRight="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="5dp"/>
+            android:layout_marginBottom="16dp" />
 
         <!-- Action buttons -->
         <LinearLayout

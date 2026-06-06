@@ -1,6 +1,8 @@
 package com.example.water;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -174,7 +176,11 @@ public class ChapterViewFragment extends Fragment {
 
     private void populateDisplay(Chapter chapter) {
         tvTitle.setText(chapter.getTitle());
-        tvContent.setText(chapter.getContent());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            tvContent.setText(Html.fromHtml(chapter.getContent(), Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            tvContent.setText(Html.fromHtml(chapter.getContent()));
+        }
 
         // Notes above
         String above = chapter.getNotes_above();

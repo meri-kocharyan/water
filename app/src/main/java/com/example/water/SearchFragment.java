@@ -9,12 +9,17 @@ import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 import com.example.water.supabase.SupabaseAuthHelper;
+import com.google.android.material.chip.ChipGroup;
+
 import java.util.*;
+import android.view.inputmethod.EditorInfo;
+import android.view.KeyEvent;
 
 public class SearchFragment extends Fragment {
 
     private EditText etTitle, etAuthor, etCharacters, etRelationships, etFreeforms, etMinWords, etMaxWords;
-    private Spinner spinnerFandom, spinnerRating, spinnerLanguage;
+    private Spinner spinnerRating, spinnerLanguage;
+    private AutoCompleteTextView actvFandoms;
     private CheckBox cbViolence, cbDeath, cbUnderage, cbNonCon,
             cbCatFF, cbCatFM, cbCatGen, cbCatMM, cbCatMulti, cbCatOther;
     private Button btnSearch;
@@ -23,6 +28,10 @@ public class SearchFragment extends Fragment {
 
     private SupabaseAuthHelper authHelper;
     private SessionManager sessionManager;
+
+    private ChipGroup chipGroupFandoms;
+
+    private final List<String> selectedFandoms = new ArrayList<>();
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -37,7 +46,8 @@ public class SearchFragment extends Fragment {
         etMinWords = view.findViewById(R.id.etMinWords);
         etMaxWords = view.findViewById(R.id.etMaxWords);
 
-        spinnerFandom = view.findViewById(R.id.spinnerSearchFandom);
+        actvFandoms = view.findViewById(R.id.actvFandoms);
+        chipGroupFandoms = view.findViewById(R.id.chipGroupFandoms);
         spinnerRating = view.findViewById(R.id.spinnerSearchRating);
         spinnerLanguage = view.findViewById(R.id.spinnerSearchLanguage);
 
@@ -58,6 +68,7 @@ public class SearchFragment extends Fragment {
 
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
+        setupFandomAutocomplete();
 
         rvResults.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookAdapter(new ArrayList<>(), book -> {
@@ -70,40 +81,80 @@ public class SearchFragment extends Fragment {
         });
         rvResults.setAdapter(adapter);
 
-        // Load fandom list from database
-        loadFandoms();
-
         btnSearch.setOnClickListener(v -> performSearch());
 
         return view;
     }
 
-    private void loadFandoms() {
+    private void setupFandomAutocomplete() {
+        // Fetch fandoms from database
         String token = sessionManager.getAccessToken();
         authHelper.fetchFandoms(token, new SupabaseAuthHelper.TagsCallback() {
-            @Override public void onSuccess(List<String> names) {
-                List<String> list = new ArrayList<>();
-                list.add("All");
-                list.addAll(names);
+            @Override
+            public void onSuccess(List<String> tagNames) {
+                if (getContext() == null) return;
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                        android.R.layout.simple_spinner_item, list);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerFandom.setAdapter(adapter);
+                        android.R.layout.simple_dropdown_item_1line, tagNames);
+                actvFandoms.setAdapter(adapter);
             }
-            @Override public void onError(String error) {
-                // fallback
-                String[] fallback = {"All"};
-                spinnerFandom.setAdapter(new ArrayAdapter<>(getContext(),
-                        android.R.layout.simple_spinner_item, fallback));
+
+            @Override
+            public void onError(String error) {
+                // Fallback to static array if database fails
+                if (getContext() == null) return;
+                String[] fallback = getResources().getStringArray(R.array.fandom_suggestions);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                        android.R.layout.simple_dropdown_item_1line, fallback);
+                actvFandoms.setAdapter(adapter);
             }
         });
+
+        // When user clicks a suggestion from the dropdown
+        actvFandoms.setOnItemClickListener((parent, v, position, id) -> {
+            String fandom = (String) parent.getItemAtPosition(position);
+            addTagToChipGroup(fandom, selectedFandoms, chipGroupFandoms);
+            actvFandoms.setText("");
+        });
+
+        // When user types a custom fandom and presses Enter
+        actvFandoms.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    (event != null && event.getAction() == KeyEvent.ACTION_DOWN &&
+                            event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                String fandom = actvFandoms.getText().toString().trim();
+                if (!fandom.isEmpty()) {
+                    addTagToChipGroup(fandom, selectedFandoms, chipGroupFandoms);
+                    actvFandoms.setText("");
+                }
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void addTagToChipGroup(String text, List<String> tagList, ChipGroup chipGroup) {
+        if (getContext() == null || text.isEmpty() || tagList.contains(text)) return;
+        tagList.add(text);
+
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View chipView = inflater.inflate(R.layout.item_tag_chip, chipGroup, false);
+
+        TextView tvText = chipView.findViewById(R.id.tvChipText);
+        ImageButton btnClose = chipView.findViewById(R.id.btnChipClose);
+
+        tvText.setText(text);
+        btnClose.setOnClickListener(v -> {
+            chipGroup.removeView(chipView);
+            tagList.remove(text);
+        });
+
+        chipGroup.addView(chipView);
     }
 
     private void performSearch() {
         String title = etTitle.getText().toString().trim();
         String author = etAuthor.getText().toString().trim();
-        String fandom = spinnerFandom.getSelectedItem() != null ? spinnerFandom.getSelectedItem().toString() : "All";
-        String rating = spinnerRating.getSelectedItem() != null ? spinnerRating.getSelectedItem().toString() : "All";
+        String fandom = actvFandoms.getText().toString().trim();        String rating = spinnerRating.getSelectedItem() != null ? spinnerRating.getSelectedItem().toString() : "All";
         String language = spinnerLanguage.getSelectedItem() != null ? spinnerLanguage.getSelectedItem().toString() : "All";
 
         List<String> warnings = new ArrayList<>();

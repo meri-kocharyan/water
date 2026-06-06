@@ -38,7 +38,43 @@ public class SupabaseAuthHelper {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final OkHttpClient client;
 
-    public void fetchProfiles(String token, String query, ProfileFetchCallback profileFetchCallback) {
+    public void fetchProfiles(String accessToken, String searchQuery,
+                              ProfileFetchCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/profiles?select=*";
+
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            // Search by username or email (case‑insensitive)
+            url += "&or=(username.ilike.*" + searchQuery + "*,email.ilike.*" + searchQuery + "*)";
+        }
+        url += "&order=username.asc&limit=50";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("apikey", ANON_KEY)
+                .header("Authorization", "Bearer " + (accessToken != null ? accessToken : ANON_KEY))
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    String err = response.body() != null ? response.body().string() : "";
+                    new Handler(Looper.getMainLooper()).post(() ->
+                            callback.onError("Fetch failed (HTTP " + response.code() + "): " + err));
+                    return;
+                }
+                String json = response.body().string();
+                UserProfile[] arr = new Gson().fromJson(json, UserProfile[].class);
+                List<UserProfile> list = Arrays.asList(arr);
+                new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
+            }
+        });
     }
 
     public interface AuthCallback {
@@ -209,51 +245,7 @@ public class SupabaseAuthHelper {
         void onError(String error);
     }
 
-    public void fetchProfiles(String accessToken, String searchQuery, String excludeId, ProfileFetchCallback callback, String userId) {
-        String url = SUPABASE_URL + "/rest/v1/friend_requests?select=sender_id,receiver_id,status" +
-                "&or=(sender_id.eq." + userId + ",receiver_id.eq." + userId + ")" +
-                "&status=neq.rejected";
-        if (searchQuery != null && !searchQuery.isEmpty()) {
-            url += "&email=ilike.*" + searchQuery + "*";
-        }
-        if (excludeId != null && !excludeId.isEmpty()) {
-            url += "&id=neq." + excludeId;
-        }
-        url += "&order=email.asc&limit=50";
 
-        Request request = new Request.Builder()
-                .url(url)
-                .header("apikey", ANON_KEY)
-                .header("Authorization", "Bearer " + accessToken)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                notifyErrorCallback(callback, e.getMessage());
-                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    String body = response.body() != null ? response.body().string() : "";
-                    String errorMsg = "Fetch users failed (HTTP " + response.code() + "): " + body;
-                    notifyErrorCallback(callback, errorMsg);
-                    return;
-                }
-                String json = response.body() != null ? response.body().string() : "[]";
-                try {
-                    UserProfile[] profiles = new Gson().fromJson(json, UserProfile[].class);
-                    List<UserProfile> list = Arrays.asList(profiles);
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(list));
-                } catch (Exception e) {
-                    notifyErrorCallback(callback, e.getMessage());
-                }
-            }
-        });
-    }
 
     private void notifyErrorCallback(ProfileFetchCallback callback, String error) {
         new Handler(Looper.getMainLooper()).post(() -> callback.onError(error));

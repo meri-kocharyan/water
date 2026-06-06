@@ -119,10 +119,6 @@ public class EditBookFragment extends Fragment {
         setupTagInput(etCharacters, chipCharacters, selectedCharacters);
         setupTagInput(etFreeforms, chipFreeforms, selectedFreeforms);
 
-        // Setup spinners and autocomplete (same as publish)
-        setupSpinners();
-        setupFandomAutocomplete();
-
         // Replace buttons: hide "Next" and "Save Draft", show "Save" and "Cancel"
         Button btnNext = view.findViewById(R.id.btnNext);
         Button btnSaveDraft = view.findViewById(R.id.btnSaveDraft);
@@ -141,6 +137,9 @@ public class EditBookFragment extends Fragment {
 
         authHelper = new SupabaseAuthHelper();
         sessionManager = new SessionManager(requireContext());
+
+        setupSpinners();
+        setupFandomAutocomplete();
 
         loadBookData();
 

@@ -1,7 +1,9 @@
 package com.example.water;
 
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -321,7 +323,11 @@ public class BookDetailFragment extends Fragment {
         // Summary
         String summary = book.getDescription();
         if (summary != null && !summary.isEmpty()) {
-            tvSummary.setText(summary);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                tvSummary.setText(Html.fromHtml(summary, Html.FROM_HTML_MODE_LEGACY));
+            } else {
+                tvSummary.setText(Html.fromHtml(summary));
+            }
             tvSummary.setVisibility(View.VISIBLE);
         } else {
             tvSummary.setVisibility(View.GONE);

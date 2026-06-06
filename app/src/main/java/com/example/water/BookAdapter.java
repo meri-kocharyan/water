@@ -1,6 +1,7 @@
 package com.example.water;
 
 import android.graphics.Typeface;
+import android.text.Html;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -182,10 +183,10 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
         // --- Summary ---
         String summary = book.getDescription();
         if (summary != null && !summary.isEmpty()) {
-            holder.tvSummary.setText(summary);
-            holder.tvSummary.setVisibility(View.VISIBLE);
+            Spanned stripped = Html.fromHtml(summary, Html.FROM_HTML_MODE_LEGACY);
+            holder.tvSummary.setText(stripped.toString().trim());
         } else {
-            holder.tvSummary.setVisibility(View.GONE);
+            holder.tvSummary.setText("");
         }
 
         // --- Stats line: Language: X  Words: X  Chapters: X/X  Kudos: X  Hits: X ---

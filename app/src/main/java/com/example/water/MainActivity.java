@@ -139,7 +139,11 @@ public class MainActivity extends AppCompatActivity {
             popupWindow.dismiss();
         });
 
-        menuLibrary.setOnClickListener(menuItemClick);
+        menuLibrary.setOnClickListener(v -> {
+            loadFragment(new LibraryFragment());
+            popupWindow.dismiss();
+        });
+
         menuHistory.setOnClickListener(menuItemClick);
         menuCollections.setOnClickListener(menuItemClick);
         menuUpdates.setOnClickListener(menuItemClick);

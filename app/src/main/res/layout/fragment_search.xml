@@ -22,16 +22,7 @@
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
             android:background="@color/light_blue"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp" />
-
-        <!-- Divider line -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/ao3_rule" />
+            android:padding="16dp" />
 
         <!-- Scrollable content with side padding -->
         <LinearLayout
@@ -54,12 +45,25 @@
                 style="@style/EditText"
                 android:hint="Search by author" />
 
-            <!-- Fandom -->
-            <TextView style="@style/FieldLabel" android:text="Fandom" />
-            <Spinner
-                android:id="@+id/spinnerSearchFandom"
-                style="@style/Spinner"
-                android:entries="@array/fandom_search_array" />
+            <!-- Fandoms * -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Fandoms *" />
+            <TextView
+                style="@style/FieldHint"
+                android:text="Start typing to search. Select a suggestion or press Enter to add." />
+            <AutoCompleteTextView
+                android:id="@+id/actvFandoms"
+                style="@style/EditText"
+                android:hint="e.g. Naruto, Marvel" />
+
+            <!-- Chip row for selected fandoms -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFandoms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="12dp" />
 
             <!-- Rating -->
             <TextView style="@style/FieldLabel" android:text="Rating" />

@@ -209,7 +209,7 @@
             <TextView
                 style="@style/FieldHint"
                 android:text="A short description — like a book jacket blurb." />
-            <EditText
+            <com.example.water.PasteableEditText
                 android:id="@+id/etDescription"
                 style="@style/EditText"
                 android:inputType="textMultiLine"

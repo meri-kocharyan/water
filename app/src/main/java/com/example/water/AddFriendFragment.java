@@ -115,19 +115,21 @@ public class AddFriendFragment extends Fragment {
         authHelper.fetchProfiles(token, query, new SupabaseAuthHelper.ProfileFetchCallback() {
             @Override
             public void onSuccess(List<UserProfile> profiles) {
-                // Remove profiles whose IDs are in connectedUserIds
+                String myUserId = sessionManager.getUserId();
                 List<UserProfile> filtered = new ArrayList<>();
                 for (UserProfile p : profiles) {
-                    if (!connectedUserIds.contains(p.getId())) {
-                        filtered.add(p);
-                    }
+                    // Skip myself
+                    if (p.getId().equals(myUserId)) continue;
+                    // Skip already connected users
+                    if (connectedUserIds.contains(p.getId())) continue;
+                    filtered.add(p);
                 }
                 adapter.updateList(filtered);
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(getContext(), "Error loading users: " + error, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
     }

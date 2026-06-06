@@ -32,7 +32,7 @@
                 android:id="@+id/tvDetailDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 android:textColor="?android:attr/textColorSecondary" />
         </LinearLayout>
 
@@ -58,7 +58,7 @@
                 android:id="@+id/tvDetailWarnings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
@@ -68,7 +68,7 @@
                 android:id="@+id/tvDetailRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
+                android:textSize="14sp"
                 android:textStyle="italic"
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
@@ -78,7 +78,7 @@
                 android:id="@+id/tvDetailCategories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
+                android:textSize="14sp"
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
@@ -87,7 +87,7 @@
                 android:id="@+id/tvDetailRelationships"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
+                android:textSize="14sp"
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
@@ -96,7 +96,7 @@
                 android:id="@+id/tvDetailCharacters"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
+                android:textSize="14sp"
                 android:textColor="?android:attr/textColorPrimary"
                 android:layout_marginBottom="4dp" />
 
@@ -105,7 +105,7 @@
                 android:id="@+id/tvDetailFreeforms"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
+                android:textSize="14sp"
                 android:textColor="?android:attr/textColorPrimary" />
         </LinearLayout>
 
@@ -120,7 +120,7 @@
             android:id="@+id/tvDetailStats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:textSize="14sp"
             android:textColor="?android:attr/textColorSecondary"
             android:paddingVertical="8dp" />
 
@@ -135,7 +135,7 @@
             android:id="@+id/tvDetailSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="17sp"
+            android:textSize="15sp"
             android:textColor="?android:attr/textColorPrimary"
             android:lineSpacingMultiplier="1.4"
             android:layout_marginTop="8dp"
